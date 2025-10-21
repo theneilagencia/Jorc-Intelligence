@@ -1,4 +1,4 @@
-import { mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { mysqlEnum, mysqlTable, text, timestamp, varchar, json, boolean } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -28,17 +28,88 @@ export const reports = mysqlTable("reports", {
   id: varchar("id", { length: 64 }).primaryKey(),
   tenantId: varchar("tenantId", { length: 64 }).notNull(),
   userId: varchar("userId", { length: 64 }).notNull(),
+  
+  // Source and detection
+  sourceType: mysqlEnum("sourceType", ["internal", "external"]).default("internal").notNull(),
+  detectedStandard: varchar("detectedStandard", { length: 32 }),
+  
+  // Original fields
   standard: varchar("standard", { length: 32 }).notNull(),
   title: text("title").notNull(),
-  status: mysqlEnum("status", ["draft", "processing", "completed", "failed"]).default("draft").notNull(),
+  
+  // Enhanced status for ETAPA 2
+  status: mysqlEnum("status", [
+    "draft",
+    "processing",
+    "parsing",
+    "needs_review",
+    "ready_for_audit",
+    "audited",
+    "certified",
+    "exported",
+    "completed",
+    "failed"
+  ]).default("draft").notNull(),
+  
+  // S3 storage
   s3Key: text("s3Key"),
   s3Url: text("s3Url"),
-  metadata: text("metadata"),
+  s3NormalizedUrl: text("s3NormalizedUrl"),
+  s3OriginalUrl: text("s3OriginalUrl"),
+  
+  // Parsing metadata
+  parsingSummary: json("parsingSummary"),
+  metadata: json("metadata"),
+  
+  // Timestamps
   createdAt: timestamp("createdAt").defaultNow(),
   updatedAt: timestamp("updatedAt").defaultNow(),
+});
+
+// Upload tracking table
+export const uploads = mysqlTable("uploads", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  tenantId: varchar("tenantId", { length: 64 }).notNull(),
+  userId: varchar("userId", { length: 64 }).notNull(),
+  reportId: varchar("reportId", { length: 64 }),
+  
+  fileName: text("fileName").notNull(),
+  fileSize: varchar("fileSize", { length: 32 }),
+  fileType: varchar("fileType", { length: 64 }),
+  
+  s3Key: text("s3Key").notNull(),
+  s3Url: text("s3Url"),
+  
+  status: mysqlEnum("status", ["uploading", "uploaded", "parsing", "completed", "failed"]).default("uploading").notNull(),
+  errorMessage: text("errorMessage"),
+  
+  createdAt: timestamp("createdAt").defaultNow(),
+  updatedAt: timestamp("updatedAt").defaultNow(),
+});
+
+// Review logs for audit trail
+export const reviewLogs = mysqlTable("reviewLogs", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  reportId: varchar("reportId", { length: 64 }).notNull(),
+  tenantId: varchar("tenantId", { length: 64 }).notNull(),
+  userId: varchar("userId", { length: 64 }).notNull(),
+  
+  fieldPath: text("fieldPath").notNull(),
+  previousValue: text("previousValue"),
+  newValue: text("newValue").notNull(),
+  
+  createdAt: timestamp("createdAt").defaultNow(),
 });
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+export type Report = typeof reports.$inferSelect;
+export type InsertReport = typeof reports.$inferInsert;
+
+export type Upload = typeof uploads.$inferSelect;
+export type InsertUpload = typeof uploads.$inferInsert;
+
+export type ReviewLog = typeof reviewLogs.$inferSelect;
+export type InsertReviewLog = typeof reviewLogs.$inferInsert;
+

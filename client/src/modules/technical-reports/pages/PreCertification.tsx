@@ -2,9 +2,76 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { trpc } from "@/lib/trpc";
 import { Award, Clock, CheckCircle2, Building2 } from "lucide-react";
+import GuardRailModal from "../components/GuardRailModal";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function PreCertification() {
+  const [selectedReport, setSelectedReport] = useState<string>("");
+  const [selectedRegulator, setSelectedRegulator] = useState<string>("");
+  const [additionalInfo, setAdditionalInfo] = useState<string>("");
+  const [showGuardRail, setShowGuardRail] = useState<boolean>(false);
+
+  // Query para listar relatórios
+  const { data: reports } = trpc.technicalReports.generate.list.useQuery({
+    limit: 20,
+  });
+
+  // Mutation para solicitar pré-certificação
+  const requestCert = trpc.technicalReports.precert.request.useMutation({
+    onSuccess: (data) => {
+      toast.success("Solicitação enviada!", {
+        description: `Prazo estimado: ${data.estimatedDays} dias úteis`,
+      });
+      setSelectedReport("");
+      setSelectedRegulator("");
+      setAdditionalInfo("");
+    },
+    onError: (error) => {
+      toast.error("Erro ao enviar solicitação", {
+        description: error.message,
+      });
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!selectedReport) {
+      toast.error("Selecione um relatório");
+      return;
+    }
+
+    if (!selectedRegulator) {
+      toast.error("Selecione um regulador");
+      return;
+    }
+
+    // GUARD-RAIL: Verificar se o relatório precisa de revisão
+    const report = reports?.find((r) => r.id === selectedReport);
+    if (report?.status === "needs_review") {
+      setShowGuardRail(true);
+      return;
+    }
+
+    requestCert.mutate({
+      reportId: selectedReport,
+      regulator: selectedRegulator as any,
+      additionalInfo: additionalInfo || undefined,
+    });
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -32,7 +99,12 @@ export default function PreCertification() {
                   <p className="text-xs text-gray-600">{regulator.country}</p>
                 </div>
               </div>
-              <Button variant="outline" size="sm" className="w-full">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => setSelectedRegulator(regulator.name)}
+              >
                 Solicitar
               </Button>
             </Card>
@@ -52,52 +124,65 @@ export default function PreCertification() {
             </div>
           </div>
 
-          <div className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">
-                Relatório
-              </label>
-              <select className="w-full border rounded-lg px-4 py-2">
-                <option>Selecione um relatório...</option>
-                <option>Relatório JORC 2012 - Projeto Alpha</option>
-                <option>Relatório NI 43-101 - Projeto Beta</option>
-                <option>Relatório PERC - Projeto Gamma</option>
-              </select>
+              <Label htmlFor="report">Relatório</Label>
+              <Select value={selectedReport} onValueChange={setSelectedReport}>
+                <SelectTrigger id="report">
+                  <SelectValue placeholder="Selecione um relatório..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {reports?.map((report) => (
+                    <SelectItem key={report.id} value={report.id}>
+                      {report.title} ({report.standard})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">
-                Regulador
-              </label>
-              <select className="w-full border rounded-lg px-4 py-2">
-                <option>Selecione o regulador...</option>
-                <option>ASX - Australian Securities Exchange</option>
-                <option>TSX - Toronto Stock Exchange</option>
-                <option>JSE - Johannesburg Stock Exchange</option>
-                <option>CRIRSCO - Committee for Mineral Reserves</option>
-              </select>
+              <Label htmlFor="regulator">Regulador</Label>
+              <Select value={selectedRegulator} onValueChange={setSelectedRegulator}>
+                <SelectTrigger id="regulator">
+                  <SelectValue placeholder="Selecione um regulador..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ASX">ASX - Austrália</SelectItem>
+                  <SelectItem value="TSX">TSX - Canadá</SelectItem>
+                  <SelectItem value="JSE">JSE - África do Sul</SelectItem>
+                  <SelectItem value="CRIRSCO">CRIRSCO - Internacional</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">
-                Informações Adicionais
-              </label>
-              <textarea
-                className="w-full border rounded-lg px-4 py-2 min-h-24"
-                placeholder="Adicione informações relevantes para a análise..."
+              <Label htmlFor="additionalInfo">Informações Adicionais (opcional)</Label>
+              <Textarea
+                id="additionalInfo"
+                value={additionalInfo}
+                onChange={(e) => setAdditionalInfo(e.target.value)}
+                placeholder="Descreva informações relevantes para a análise..."
+                rows={4}
               />
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-blue-800">
-                <strong>ℹ️ Tempo estimado:</strong> 5-15 dias úteis dependendo do regulador
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <p className="text-sm text-yellow-900">
+                <strong>Tempo estimado:</strong> 5-15 dias úteis após submissão
               </p>
             </div>
 
             <div className="pt-4">
-              <Button className="w-full">Enviar Solicitação</Button>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={requestCert.isPending}
+              >
+                {requestCert.isPending ? "Enviando..." : "Enviar Solicitação"}
+              </Button>
             </div>
-          </div>
+          </form>
         </Card>
 
         <Card className="p-6">
@@ -108,85 +193,53 @@ export default function PreCertification() {
                 id: "CERT-001",
                 report: "Projeto Alpha - JORC 2012",
                 regulator: "ASX",
-                status: "in_progress",
                 progress: 65,
+                status: "in_progress",
                 date: "15/10/2025",
-                estimatedDays: 8,
               },
               {
                 id: "CERT-002",
                 report: "Projeto Beta - NI 43-101",
                 regulator: "TSX",
-                status: "pending",
-                progress: 20,
+                progress: 30,
+                status: "in_progress",
                 date: "18/10/2025",
-                estimatedDays: 12,
-              },
-              {
-                id: "CERT-003",
-                report: "Projeto Delta - SAMREC",
-                regulator: "JSE",
-                status: "completed",
-                progress: 100,
-                date: "10/10/2025",
-                estimatedDays: 0,
               },
             ].map((cert) => (
               <div
                 key={cert.id}
-                className="border rounded-lg p-4 hover:bg-gray-50"
+                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
               >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <p className="font-medium">{cert.report}</p>
-                    <p className="text-sm text-gray-600">
-                      {cert.id} • {cert.regulator} • {cert.date}
-                    </p>
+                <div className="flex-1">
+                  <p className="font-medium">{cert.report}</p>
+                  <p className="text-sm text-gray-600">
+                    {cert.id} • {cert.regulator} • {cert.date}
+                  </p>
+                  <div className="mt-2">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-blue-600 h-2 rounded-full"
+                          style={{ width: `${cert.progress}%` }}
+                        />
+                      </div>
+                      <span className="text-xs text-gray-600">{cert.progress}%</span>
+                    </div>
                   </div>
-                  <Badge
-                    variant={
-                      cert.status === "completed"
-                        ? "default"
-                        : cert.status === "in_progress"
-                        ? "secondary"
-                        : "outline"
-                    }
-                  >
-                    {cert.status === "completed" && (
-                      <CheckCircle2 className="h-3 w-3 mr-1" />
-                    )}
-                    {cert.status === "in_progress" && (
-                      <Clock className="h-3 w-3 mr-1" />
-                    )}
-                    {cert.status === "completed"
-                      ? "Concluído"
-                      : cert.status === "in_progress"
-                      ? "Em análise"
-                      : "Pendente"}
-                  </Badge>
                 </div>
-
-                {cert.status !== "completed" && (
-                  <div>
-                    <div className="flex items-center justify-between text-sm mb-1">
-                      <span className="text-gray-600">Progresso</span>
-                      <span className="font-medium">{cert.progress}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-blue-600 h-2 rounded-full transition-all"
-                        style={{ width: `${cert.progress}%` }}
-                      />
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">
-                      Estimativa: {cert.estimatedDays} dias restantes
-                    </p>
-                  </div>
-                )}
+                <Badge variant="secondary">Em análise</Badge>
               </div>
             ))}
           </div>
         </Card>
+
+        {/* Guard-Rail Modal */}
+        <GuardRailModal
+          open={showGuardRail}
+          onClose={() => setShowGuardRail(false)}
+          reportId={selectedReport}
+          action="Pré-Certificação"
+        />
       </div>
     </DashboardLayout>
   );

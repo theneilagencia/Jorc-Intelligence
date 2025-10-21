@@ -2,9 +2,75 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { trpc } from "@/lib/trpc";
 import { ArrowRightLeft, Download, FileType, RefreshCw } from "lucide-react";
+import GuardRailModal from "../components/GuardRailModal";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function ExportStandards() {
+  const [selectedReport, setSelectedReport] = useState<string>("");
+  const [sourceStandard, setSourceStandard] = useState<string>("JORC_2012");
+  const [targetStandard, setTargetStandard] = useState<string>("NI_43_101");
+  const [exportFormat, setExportFormat] = useState<string>("PDF");
+  const [showGuardRail, setShowGuardRail] = useState<boolean>(false);
+
+  // Query para listar relatórios
+  const { data: reports } = trpc.technicalReports.generate.list.useQuery({
+    limit: 20,
+  });
+
+  // Mutation para converter
+  const convertReport = trpc.technicalReports.export.convert.useMutation({
+    onSuccess: (data) => {
+      toast.success("Conversão iniciada!", {
+        description: `ID: ${data.exportId}`,
+      });
+      setSelectedReport("");
+    },
+    onError: (error) => {
+      toast.error("Erro ao converter", {
+        description: error.message,
+      });
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!selectedReport) {
+      toast.error("Selecione um relatório");
+      return;
+    }
+
+    if (sourceStandard === targetStandard) {
+      toast.error("Padrão de origem e destino devem ser diferentes");
+      return;
+    }
+
+    // GUARD-RAIL: Verificar se o relatório precisa de revisão
+    const report = reports?.find((r) => r.id === selectedReport);
+    if (report?.status === "needs_review") {
+      setShowGuardRail(true);
+      return;
+    }
+
+    convertReport.mutate({
+      reportId: selectedReport,
+      fromStandard: sourceStandard as any,
+      toStandard: targetStandard as any,
+      format: exportFormat as any,
+    });
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -46,78 +112,87 @@ export default function ExportStandards() {
             </div>
           </div>
 
-          <div className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">
-                Relatório de Origem
-              </label>
-              <select className="w-full border rounded-lg px-4 py-2">
-                <option>Selecione um relatório...</option>
-                <option>Relatório JORC 2012 - Projeto Alpha</option>
-                <option>Relatório NI 43-101 - Projeto Beta</option>
-                <option>Relatório PERC - Projeto Gamma</option>
-              </select>
+              <Label htmlFor="report">Relatório de Origem</Label>
+              <Select value={selectedReport} onValueChange={setSelectedReport}>
+                <SelectTrigger id="report">
+                  <SelectValue placeholder="Selecione um relatório..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {reports?.map((report) => (
+                    <SelectItem key={report.id} value={report.id}>
+                      {report.title} ({report.standard})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-2">
-                  Padrão de Origem
-                </label>
-                <select className="w-full border rounded-lg px-4 py-2">
-                  <option>JORC 2012</option>
-                  <option>NI 43-101</option>
-                  <option>PERC</option>
-                  <option>SAMREC</option>
-                  <option>CRIRSCO</option>
-                </select>
+                <Label htmlFor="source">Padrão de Origem</Label>
+                <Select value={sourceStandard} onValueChange={setSourceStandard}>
+                  <SelectTrigger id="source">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="JORC_2012">JORC 2012</SelectItem>
+                    <SelectItem value="NI_43_101">NI 43-101</SelectItem>
+                    <SelectItem value="PERC">PERC</SelectItem>
+                    <SelectItem value="SAMREC">SAMREC</SelectItem>
+                    <SelectItem value="CRIRSCO">CRIRSCO</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">
-                  Padrão de Destino
-                </label>
-                <select className="w-full border rounded-lg px-4 py-2">
-                  <option>NI 43-101</option>
-                  <option>JORC 2012</option>
-                  <option>PERC</option>
-                  <option>SAMREC</option>
-                  <option>CRIRSCO</option>
-                </select>
+                <Label htmlFor="target">Padrão de Destino</Label>
+                <Select value={targetStandard} onValueChange={setTargetStandard}>
+                  <SelectTrigger id="target">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="JORC_2012">JORC 2012</SelectItem>
+                    <SelectItem value="NI_43_101">NI 43-101</SelectItem>
+                    <SelectItem value="PERC">PERC</SelectItem>
+                    <SelectItem value="SAMREC">SAMREC</SelectItem>
+                    <SelectItem value="CRIRSCO">CRIRSCO</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">
-                Formato de Exportação
-              </label>
-              <div className="grid grid-cols-3 gap-3">
-                {["PDF", "DOCX", "XLSX"].map((format) => (
-                  <label
-                    key={format}
-                    className="flex items-center gap-2 border rounded-lg p-3 cursor-pointer hover:bg-gray-50"
-                  >
-                    <input type="radio" name="format" defaultChecked={format === "PDF"} />
-                    <span className="font-medium">{format}</span>
-                  </label>
-                ))}
-              </div>
+              <Label htmlFor="format">Formato de Exportação</Label>
+              <Select value={exportFormat} onValueChange={setExportFormat}>
+                <SelectTrigger id="format">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PDF">PDF</SelectItem>
+                  <SelectItem value="DOCX">DOCX</SelectItem>
+                  <SelectItem value="XLSX">XLSX</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-              <p className="text-sm text-amber-800">
-                <strong>⚠️ Atenção:</strong> A conversão entre padrões pode levar alguns minutos.
-                Você será notificado quando o arquivo estiver pronto para download.
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-900">
+                <strong>Tempo de conversão:</strong> 2-5 minutos dependendo da complexidade
               </p>
             </div>
 
             <div className="pt-4">
-              <Button className="w-full">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Iniciar Conversão
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={convertReport.isPending}
+              >
+                {convertReport.isPending ? "Convertendo..." : "Iniciar Conversão"}
               </Button>
             </div>
-          </div>
+          </form>
         </Card>
 
         <Card className="p-6">
@@ -125,65 +200,40 @@ export default function ExportStandards() {
           <div className="space-y-3">
             {[
               {
-                id: "EXP-001",
+                id: "CONV-001",
                 report: "Projeto Alpha",
-                from: "JORC 2012",
-                to: "NI 43-101",
+                conversion: "JORC → NI 43-101",
                 format: "PDF",
                 status: "completed",
                 date: "20/10/2025",
-                size: "2.4 MB",
               },
               {
-                id: "EXP-002",
+                id: "CONV-002",
                 report: "Projeto Beta",
-                from: "NI 43-101",
-                to: "PERC",
+                conversion: "NI 43-101 → PERC",
                 format: "DOCX",
                 status: "processing",
-                date: "20/10/2025",
-                size: "-",
+                date: "21/10/2025",
               },
-              {
-                id: "EXP-003",
-                report: "Projeto Gamma",
-                from: "PERC",
-                to: "SAMREC",
-                format: "XLSX",
-                status: "completed",
-                date: "19/10/2025",
-                size: "1.8 MB",
-              },
-            ].map((exp) => (
+            ].map((conv) => (
               <div
-                key={exp.id}
+                key={conv.id}
                 className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
               >
                 <div className="flex-1">
-                  <p className="font-medium">{exp.report}</p>
+                  <p className="font-medium">{conv.report}</p>
                   <p className="text-sm text-gray-600">
-                    {exp.id} • {exp.date}
+                    {conv.id} • {conv.conversion} • {conv.format} • {conv.date}
                   </p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="outline" className="text-xs">
-                      {exp.from}
-                    </Badge>
-                    <ArrowRightLeft className="h-3 w-3 text-gray-400" />
-                    <Badge variant="outline" className="text-xs">
-                      {exp.to}
-                    </Badge>
-                    <span className="text-xs text-gray-500">• {exp.format}</span>
-                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  {exp.status === "completed" ? (
+                <div className="flex items-center gap-2">
+                  {conv.status === "completed" ? (
                     <>
-                      <div className="text-right">
-                        <p className="text-sm font-medium">{exp.size}</p>
-                        <p className="text-xs text-gray-600">Tamanho</p>
-                      </div>
+                      <Badge variant="default" className="bg-green-600">
+                        Concluído
+                      </Badge>
                       <Button size="sm" variant="outline">
-                        <Download className="h-4 w-4 mr-1" />
+                        <Download className="h-4 w-4 mr-2" />
                         Baixar
                       </Button>
                     </>
@@ -198,6 +248,14 @@ export default function ExportStandards() {
             ))}
           </div>
         </Card>
+
+        {/* Guard-Rail Modal */}
+        <GuardRailModal
+          open={showGuardRail}
+          onClose={() => setShowGuardRail(false)}
+          reportId={selectedReport}
+          action="Exportação"
+        />
       </div>
     </DashboardLayout>
   );

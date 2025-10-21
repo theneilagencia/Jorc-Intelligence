@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
 import { Shield, CheckCircle, AlertTriangle, FileSearch } from "lucide-react";
+import GuardRailModal from "../components/GuardRailModal";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -29,6 +30,7 @@ const KRCI_RULES = [
 export default function AuditKRCI() {
   const [selectedReport, setSelectedReport] = useState<string>("");
   const [selectedRules, setSelectedRules] = useState<string[]>(KRCI_RULES);
+  const [showGuardRail, setShowGuardRail] = useState<boolean>(false);
 
   // Query para listar relatórios
   const { data: reports } = trpc.technicalReports.generate.list.useQuery({
@@ -65,6 +67,13 @@ export default function AuditKRCI() {
 
     if (selectedRules.length === 0) {
       toast.error("Selecione ao menos uma regra");
+      return;
+    }
+
+    // GUARD-RAIL: Verificar se o relatório precisa de revisão
+    const report = reports?.find((r) => r.id === selectedReport);
+    if (report?.status === "needs_review") {
+      setShowGuardRail(true);
       return;
     }
 
@@ -237,6 +246,14 @@ export default function AuditKRCI() {
             ))}
           </div>
         </Card>
+
+        {/* Guard-Rail Modal */}
+        <GuardRailModal
+          open={showGuardRail}
+          onClose={() => setShowGuardRail(false)}
+          reportId={selectedReport}
+          action="Auditoria"
+        />
       </div>
     </DashboardLayout>
   );

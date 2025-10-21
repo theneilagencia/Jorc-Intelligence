@@ -11,7 +11,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { FileText } from "lucide-react";
+import { FileText, Upload as UploadIcon, AlertCircle, CheckCircle } from "lucide-react";
+import UploadModal from "../components/UploadModal";
+import { Badge } from "@/components/ui/badge";
+import { useLocation } from "wouter";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -19,7 +22,9 @@ export default function GenerateReport() {
   const [standard, setStandard] = useState<string>("JORC_2012");
   const [title, setTitle] = useState<string>("");
   const [projectName, setProjectName] = useState<string>("");
-  const [location, setLocation] = useState<string>("");
+  const [locationInput, setLocationInput] = useState<string>("");
+  const [showUploadModal, setShowUploadModal] = useState<boolean>(false);
+  const [, navigate] = useLocation();
 
   const utils = trpc.useUtils();
   
@@ -32,7 +37,7 @@ export default function GenerateReport() {
       // Limpar formulário
       setTitle("");
       setProjectName("");
-      setLocation("");
+      setLocationInput("");
       // Invalidar lista de relatórios
       utils.technicalReports.generate.list.invalidate();
     },
@@ -62,18 +67,24 @@ export default function GenerateReport() {
       standard: standard as any,
       title,
       projectName: projectName || undefined,
-      location: location || undefined,
+        location: locationInput || undefined,
     });
   };
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Gerar Relatório</h1>
-          <p className="text-gray-600 mt-2">
-            Crie relatórios técnicos estruturados conforme padrões internacionais
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Gerar Relatório</h1>
+            <p className="text-gray-600 mt-2">
+              Crie relatórios técnicos estruturados conforme padrões internacionais
+            </p>
+          </div>
+          <Button onClick={() => setShowUploadModal(true)} variant="outline">
+            <UploadIcon className="h-4 w-4 mr-2" />
+            Upload Externo
+          </Button>
         </div>
 
         <Card className="p-6">
@@ -135,8 +146,8 @@ export default function GenerateReport() {
                 id="location"
                 type="text"
                 placeholder="Ex: Minas Gerais, Brasil"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
+                value={locationInput}
+                onChange={(e) => setLocationInput(e.target.value)}
               />
             </div>
 
@@ -166,27 +177,74 @@ export default function GenerateReport() {
             <p className="text-gray-500">Carregando...</p>
           ) : reports && reports.length > 0 ? (
             <div className="space-y-3">
-              {reports.map((report) => (
-                <div
-                  key={report.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
-                >
-                  <div className="flex-1">
-                    <p className="font-medium">{report.title}</p>
-                    <p className="text-sm text-gray-600">
-                      {report.id} • {report.standard} • {report.status}
-                    </p>
+              {reports.map((report) => {
+                const needsReview = report.status === "needs_review";
+                const readyForAudit = report.status === "ready_for_audit";
+                const isExternal = report.sourceType === "external";
+                
+                return (
+                  <div
+                    key={report.id}
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-medium">{report.title}</p>
+                        {isExternal && (
+                          <Badge variant="secondary" className="text-xs">
+                            Externo
+                          </Badge>
+                        )}
+                        {needsReview && (
+                          <Badge variant="destructive" className="bg-orange-500">
+                            <AlertCircle className="h-3 w-3 mr-1" />
+                            Revisão necessária
+                          </Badge>
+                        )}
+                        {readyForAudit && (
+                          <Badge variant="default" className="bg-green-600">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Pronto para auditoria
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        {report.id} • {report.standard}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="text-sm text-gray-500">
+                        {new Date(report.createdAt || "").toLocaleDateString("pt-BR")}
+                      </div>
+                      {needsReview && (
+                        <Button
+                          size="sm"
+                          onClick={() => navigate(`/reports/${report.id}/review`)}
+                        >
+                          Revisar agora
+                        </Button>
+                      )}
+                      {readyForAudit && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => navigate("/reports/audit")}
+                        >
+                          Ir para Auditoria
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-500">
-                    {new Date(report.createdAt || "").toLocaleDateString("pt-BR")}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <p className="text-gray-500">Nenhum relatório encontrado</p>
           )}
         </Card>
+
+        {/* Modal de Upload */}
+        <UploadModal open={showUploadModal} onClose={() => setShowUploadModal(false)} />
       </div>
     </DashboardLayout>
   );

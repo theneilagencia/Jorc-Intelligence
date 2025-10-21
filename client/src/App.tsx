@@ -11,6 +11,7 @@ import GenerateReport from "./modules/technical-reports/pages/GenerateReport";
 import AuditKRCI from "./modules/technical-reports/pages/AuditKRCI";
 import PreCertification from "./modules/technical-reports/pages/PreCertification";
 import ExportStandards from "./modules/technical-reports/pages/ExportStandards";
+import ReviewReport from "./modules/technical-reports/pages/ReviewReport";
 
 function Router() {
   return (
@@ -21,7 +22,8 @@ function Router() {
       <Route path={"/reports/generate"} component={GenerateReport} />
       <Route path={"/reports/audit"} component={AuditKRCI} />
       <Route path={"/reports/precert"} component={PreCertification} />
-      <Route path={"/reports/export"} component={ExportStandards} />
+      <Route path="/reports/export" component={ExportStandards} />
+      <Route path="/reports/:reportId/review" component={ReviewReport} />
       
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
