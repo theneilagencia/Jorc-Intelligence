@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { protectedProcedure, router } from "../../_core/trpc";
 import { uploadsRouter } from "./routers/uploads";
+import { auditRouter } from "./routers/audit";
 import { TRPCError } from "@trpc/server";
 
 /**
@@ -137,6 +138,9 @@ export const technicalReportsRouter = router({
   }),
 
   // ==================== AUDIT & KRCI ====================
+  audit: auditRouter,
+
+  /* OLD AUDIT ROUTER - REPLACED
   audit: router({
     // Executar auditoria KRCI em um relatório
     run: protectedProcedure
@@ -206,7 +210,7 @@ export const technicalReportsRouter = router({
           message: "Funcionalidade em desenvolvimento",
         };
       }),
-  }),
+  }), */
 
   // ==================== PRE-CERTIFICATION ====================
   precert: router({

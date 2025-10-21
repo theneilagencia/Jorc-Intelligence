@@ -1,4 +1,4 @@
-import { mysqlEnum, mysqlTable, text, timestamp, varchar, json, boolean } from "drizzle-orm/mysql-core";
+import { mysqlEnum, mysqlTable, text, timestamp, varchar, json, boolean, float, int } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -112,4 +112,27 @@ export type InsertUpload = typeof uploads.$inferInsert;
 
 export type ReviewLog = typeof reviewLogs.$inferSelect;
 export type InsertReviewLog = typeof reviewLogs.$inferInsert;
+
+export const audits = mysqlTable("audits", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  reportId: varchar("reportId", { length: 64 }).notNull(),
+  tenantId: varchar("tenantId", { length: 64 }).notNull(),
+  userId: varchar("userId", { length: 64 }).notNull(),
+  
+  auditType: mysqlEnum("auditType", ["full", "partial"]).default("full").notNull(),
+  score: float("score").notNull(),
+  totalRules: int("totalRules").notNull(),
+  passedRules: int("passedRules").notNull(),
+  failedRules: int("failedRules").notNull(),
+  
+  krcisJson: json("krcisJson"),
+  recommendationsJson: json("recommendationsJson"),
+  
+  pdfUrl: text("pdfUrl"),
+  
+  createdAt: timestamp("createdAt").defaultNow(),
+});
+
+export type Audit = typeof audits.$inferSelect;
+export type InsertAudit = typeof audits.$inferInsert;
 
