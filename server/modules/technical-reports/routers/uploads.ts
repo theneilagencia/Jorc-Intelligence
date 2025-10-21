@@ -41,9 +41,8 @@ export const uploadsRouter = router({
         userId: ctx.user.id,
         reportId,
         fileName: input.fileName,
-        fileSize: input.fileSize.toString(),
-        fileType: input.fileType,
-        s3Key: `uploads/${uploadId}/original.${input.fileName.split(".").pop()}`,
+        fileSize: input.fileSize,
+        mimeType: input.fileType,
         status: "uploading",
       });
 
@@ -53,7 +52,7 @@ export const uploadsRouter = router({
         tenantId: ctx.user.tenantId,
         userId: ctx.user.id,
         sourceType: "external",
-        standard: "UNKNOWN", // Será detectado no parsing
+        standard: "JORC_2012", // Será detectado no parsing
         title: input.fileName,
         status: "parsing",
       });
@@ -86,7 +85,6 @@ export const uploadsRouter = router({
         .set({
           status: "parsing",
           s3Url: input.s3Url,
-          updatedAt: new Date(),
         })
         .where(eq(uploads.id, input.uploadId));
 
@@ -125,7 +123,7 @@ export const uploadsRouter = router({
       // Executar parsing
       const parsingResult = await parseAndNormalize(
         mockContent,
-        upload.fileType || "pdf",
+        upload.mimeType || "application/pdf",
         upload.reportId,
         ctx.user.tenantId
       );
@@ -141,13 +139,12 @@ export const uploadsRouter = router({
       await db
         .update(reports)
         .set({
-          detectedStandard: parsingResult.summary.detectedStandard,
-          standard: parsingResult.summary.detectedStandard,
-          status: parsingResult.status === "needs_review" ? "needs_review" : "ready_for_audit",
+          detectedStandard: parsingResult.summary.detectedStandard as any,
+          standard: parsingResult.summary.detectedStandard as any,
+          status: (parsingResult.status === "needs_review" ? "needs_review" : "ready_for_audit") as any,
           s3NormalizedUrl: normalizedUrl,
           s3OriginalUrl: input.s3Url,
           parsingSummary: parsingResult.summary,
-          updatedAt: new Date(),
         })
         .where(eq(reports.id, upload.reportId));
 
@@ -156,7 +153,7 @@ export const uploadsRouter = router({
         .update(uploads)
         .set({
           status: "completed",
-          updatedAt: new Date(),
+          completedAt: new Date(),
         })
         .where(eq(uploads.id, input.uploadId));
 
