@@ -154,3 +154,27 @@ export const exports = mysqlTable("exports", {
 export type Export = typeof exports.$inferSelect;
 export type InsertExport = typeof exports.$inferInsert;
 
+export const certifications = mysqlTable("certifications", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  reportId: varchar("reportId", { length: 64 }).notNull(),
+  tenantId: varchar("tenantId", { length: 64 }).notNull(),
+  userId: varchar("userId", { length: 64 }).notNull(),
+  
+  regulator: mysqlEnum("regulator", ["ASX", "TSX", "JSE", "CRIRSCO"]).notNull(),
+  status: mysqlEnum("status", ["pending", "in_progress", "approved", "rejected"]).default("pending").notNull(),
+  
+  checklistJson: json("checklistJson"),
+  pendingItemsJson: json("pendingItemsJson"),
+  
+  complianceScore: float("complianceScore"),
+  pdfUrl: text("pdfUrl"),
+  
+  notes: text("notes"),
+  
+  submittedAt: timestamp("submittedAt").defaultNow(),
+  reviewedAt: timestamp("reviewedAt"),
+});
+
+export type Certification = typeof certifications.$inferSelect;
+export type InsertCertification = typeof certifications.$inferInsert;
+
