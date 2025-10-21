@@ -335,7 +335,7 @@ export const uploadsRouter = router({
           tenantId: ctx.user.tenantId,
           userId: ctx.user.id,
           fieldPath: update.path,
-          previousValue: "N/A", // Poderia buscar o valor anterior
+          oldValue: "N/A", // Poderia buscar o valor anterior
           newValue: JSON.stringify(update.value),
         });
       }

@@ -67,6 +67,7 @@ export const uploads = pgTable("uploads", {
 export const reviewLogs = pgTable("reviewLogs", {
   id: varchar("id", { length: 64 }).primaryKey(),
   reportId: varchar("reportId", { length: 64 }).notNull(),
+  tenantId: varchar("tenantId", { length: 64 }).notNull(),
   userId: varchar("userId", { length: 64 }).notNull(),
   fieldPath: text("fieldPath").notNull(),
   oldValue: text("oldValue"),
