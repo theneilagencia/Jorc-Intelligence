@@ -2,6 +2,7 @@ import { z } from "zod";
 import { protectedProcedure, router } from "../../_core/trpc";
 import { uploadsRouter } from "./routers/uploads";
 import { auditRouter } from "./routers/audit";
+import { exportsRouter } from "./routers/exports";
 import { TRPCError } from "@trpc/server";
 
 /**
@@ -354,5 +355,8 @@ export const technicalReportsRouter = router({
 
   // ==================== UPLOADS & REVIEW (ETAPA 2) ====================
   uploads: uploadsRouter,
+
+  // ==================== EXPORTS (ETAPA 5) ====================
+  exports: exportsRouter,
 });
 

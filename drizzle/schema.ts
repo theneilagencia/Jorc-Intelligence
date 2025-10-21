@@ -136,3 +136,21 @@ export const audits = mysqlTable("audits", {
 export type Audit = typeof audits.$inferSelect;
 export type InsertAudit = typeof audits.$inferInsert;
 
+export const exports = mysqlTable("exports", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  reportId: varchar("reportId", { length: 64 }).notNull(),
+  tenantId: varchar("tenantId", { length: 64 }).notNull(),
+  userId: varchar("userId", { length: 64 }).notNull(),
+  
+  fromStandard: varchar("fromStandard", { length: 32 }).notNull(),
+  toStandard: varchar("toStandard", { length: 32 }).notNull(),
+  format: mysqlEnum("format", ["PDF", "DOCX", "XLSX"]).notNull(),
+  
+  s3Url: text("s3Url").notNull(),
+  
+  createdAt: timestamp("createdAt").defaultNow(),
+});
+
+export type Export = typeof exports.$inferSelect;
+export type InsertExport = typeof exports.$inferInsert;
+

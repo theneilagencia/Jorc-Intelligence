@@ -1,261 +1,239 @@
-import DashboardLayout from "@/components/DashboardLayout";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { trpc } from "@/lib/trpc";
-import { ArrowRightLeft, Download, FileType, RefreshCw } from "lucide-react";
-import GuardRailModal from "../components/GuardRailModal";
-import { useState } from "react";
-import { toast } from "sonner";
+import { useState } from 'react';
+import { trpc } from '@/lib/trpc';
+import DashboardLayout from '@/components/DashboardLayout';
+import { toast } from 'sonner';
+import { Download, FileText, FileSpreadsheet, FileCode, Loader2, CheckCircle2, Clock, ArrowRight } from 'lucide-react';
 
 export default function ExportStandards() {
-  const [selectedReport, setSelectedReport] = useState<string>("");
-  const [sourceStandard, setSourceStandard] = useState<string>("JORC_2012");
-  const [targetStandard, setTargetStandard] = useState<string>("NI_43_101");
-  const [exportFormat, setExportFormat] = useState<string>("PDF");
-  const [showGuardRail, setShowGuardRail] = useState<boolean>(false);
+  const [selectedReportId, setSelectedReportId] = useState('');
+  const [toStandard, setToStandard] = useState<'JORC_2012' | 'NI_43_101' | 'PERC' | 'SAMREC'>('JORC_2012');
+  const [format, setFormat] = useState<'PDF' | 'DOCX' | 'XLSX'>('PDF');
 
-  // Query para listar relatórios
-  const { data: reports } = trpc.technicalReports.generate.list.useQuery({
-    limit: 20,
-  });
+  // Queries
+  const reportsQuery = trpc.technicalReports.generate.list.useQuery();
+  const exportsQuery = trpc.technicalReports.exports.list.useQuery({});
 
-  // Mutation para converter
-  const convertReport = trpc.technicalReports.export.convert.useMutation({
-    onSuccess: (data) => {
-      toast.success("Conversão iniciada!", {
-        description: `ID: ${data.exportId}`,
-      });
-      setSelectedReport("");
+  // Mutations
+  const exportMutation = trpc.technicalReports.exports.run.useMutation({
+    onSuccess: (data: any) => {
+      toast.success('Exportação concluída com sucesso!');
+      exportsQuery.refetch();
+      setSelectedReportId('');
     },
-    onError: (error) => {
-      toast.error("Erro ao converter", {
-        description: error.message,
-      });
+    onError: (error: any) => {
+      toast.error(error.message || 'Erro ao exportar relatório');
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!selectedReport) {
-      toast.error("Selecione um relatório");
+  const handleExport = () => {
+    if (!selectedReportId) {
+      toast.error('Selecione um relatório');
       return;
     }
 
-    if (sourceStandard === targetStandard) {
-      toast.error("Padrão de origem e destino devem ser diferentes");
-      return;
-    }
-
-    // GUARD-RAIL: Verificar se o relatório precisa de revisão
-    const report = reports?.find((r) => r.id === selectedReport);
-    if (report?.status === "needs_review") {
-      setShowGuardRail(true);
-      return;
-    }
-
-    convertReport.mutate({
-      reportId: selectedReport,
-      fromStandard: sourceStandard as any,
-      toStandard: targetStandard as any,
-      format: exportFormat as any,
+    exportMutation.mutate({
+      reportId: selectedReportId,
+      toStandard,
+      format,
     });
+  };
+
+  const standards = [
+    { id: 'JORC_2012', name: 'JORC 2012', description: 'Australasian Code', icon: '🇦🇺' },
+    { id: 'NI_43_101', name: 'NI 43-101', description: 'Canadian Standard', icon: '🇨🇦' },
+    { id: 'PERC', name: 'PERC', description: 'Pan-European Code', icon: '🇪🇺' },
+    { id: 'SAMREC', name: 'SAMREC', description: 'South African Code', icon: '🇿🇦' },
+  ];
+
+  const formats = [
+    { id: 'PDF', name: 'PDF', icon: FileText, color: 'text-red-600' },
+    { id: 'DOCX', name: 'DOCX', icon: FileCode, color: 'text-blue-600' },
+    { id: 'XLSX', name: 'XLSX', icon: FileSpreadsheet, color: 'text-green-600' },
+  ];
+
+  const getFormatIcon = (fmt: string) => {
+    const format = formats.find(f => f.id === fmt);
+    if (!format) return FileText;
+    return format.icon;
+  };
+
+  const getFormatColor = (fmt: string) => {
+    const format = formats.find(f => f.id === fmt);
+    return format?.color || 'text-gray-600';
   };
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Exportar Padrões</h1>
-          <p className="text-gray-600 mt-2">
-            Converta relatórios entre diferentes padrões internacionais
-          </p>
+      <div className="p-8 max-w-7xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Exportar Padrões</h1>
+          <p className="text-gray-600">Converta relatórios entre padrões internacionais em múltiplos formatos</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-          {[
-            { code: "JORC", name: "JORC 2012", color: "blue" },
-            { code: "NI", name: "NI 43-101", color: "red" },
-            { code: "PERC", name: "PERC", color: "green" },
-            { code: "SAMREC", name: "SAMREC", color: "yellow" },
-            { code: "CRIRSCO", name: "CRIRSCO", color: "purple" },
-          ].map((standard) => (
-            <Card key={standard.code} className="p-4 text-center">
-              <div className={`h-12 w-12 mx-auto rounded-lg bg-${standard.color}-100 flex items-center justify-center mb-2`}>
-                <FileType className={`h-6 w-6 text-${standard.color}-600`} />
-              </div>
-              <p className="font-semibold text-sm">{standard.name}</p>
-              <p className="text-xs text-gray-600">{standard.code}</p>
-            </Card>
+        {/* Standards Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          {standards.map((std) => (
+            <div
+              key={std.id}
+              className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center hover:shadow-md transition-shadow"
+            >
+              <div className="text-4xl mb-3">{std.icon}</div>
+              <h3 className="font-semibold text-gray-900 mb-1">{std.name}</h3>
+              <p className="text-sm text-gray-600">{std.description}</p>
+            </div>
           ))}
         </div>
 
-        <Card className="p-6">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="h-12 w-12 rounded-lg bg-indigo-100 flex items-center justify-center">
-              <ArrowRightLeft className="h-6 w-6 text-indigo-600" />
+        {/* Export Form */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-3 bg-purple-100 rounded-lg">
+              <ArrowRight className="w-6 h-6 text-purple-600" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold">Converter Relatório</h2>
-              <p className="text-sm text-gray-600">
-                Selecione o padrão de origem e destino para conversão
-              </p>
+              <h2 className="text-xl font-semibold text-gray-900">Nova Exportação</h2>
+              <p className="text-sm text-gray-600">Selecione o relatório e configure a exportação</p>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            {/* Report Selection */}
             <div>
-              <Label htmlFor="report">Relatório de Origem</Label>
-              <Select value={selectedReport} onValueChange={setSelectedReport}>
-                <SelectTrigger id="report">
-                  <SelectValue placeholder="Selecione um relatório..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {reports?.map((report) => (
-                    <SelectItem key={report.id} value={report.id}>
-                      {report.title} ({report.standard})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Relatório de Origem
+              </label>
+              <select
+                value={selectedReportId}
+                onChange={(e) => setSelectedReportId(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              >
+                <option value="">Selecione um relatório...</option>
+                {reportsQuery.data?.map((report: any) => (
+                  <option key={report.id} value={report.id}>
+                    {report.title} ({report.standard}) - {report.status}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="source">Padrão de Origem</Label>
-                <Select value={sourceStandard} onValueChange={setSourceStandard}>
-                  <SelectTrigger id="source">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="JORC_2012">JORC 2012</SelectItem>
-                    <SelectItem value="NI_43_101">NI 43-101</SelectItem>
-                    <SelectItem value="PERC">PERC</SelectItem>
-                    <SelectItem value="SAMREC">SAMREC</SelectItem>
-                    <SelectItem value="CRIRSCO">CRIRSCO</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="target">Padrão de Destino</Label>
-                <Select value={targetStandard} onValueChange={setTargetStandard}>
-                  <SelectTrigger id="target">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="JORC_2012">JORC 2012</SelectItem>
-                    <SelectItem value="NI_43_101">NI 43-101</SelectItem>
-                    <SelectItem value="PERC">PERC</SelectItem>
-                    <SelectItem value="SAMREC">SAMREC</SelectItem>
-                    <SelectItem value="CRIRSCO">CRIRSCO</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
+            {/* Target Standard */}
             <div>
-              <Label htmlFor="format">Formato de Exportação</Label>
-              <Select value={exportFormat} onValueChange={setExportFormat}>
-                <SelectTrigger id="format">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="PDF">PDF</SelectItem>
-                  <SelectItem value="DOCX">DOCX</SelectItem>
-                  <SelectItem value="XLSX">XLSX</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-blue-900">
-                <strong>Tempo de conversão:</strong> 2-5 minutos dependendo da complexidade
-              </p>
-            </div>
-
-            <div className="pt-4">
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={convertReport.isPending}
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Padrão de Destino
+              </label>
+              <select
+                value={toStandard}
+                onChange={(e) => setToStandard(e.target.value as any)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               >
-                {convertReport.isPending ? "Convertendo..." : "Iniciar Conversão"}
-              </Button>
+                {standards.map((std) => (
+                  <option key={std.id} value={std.id}>
+                    {std.name}
+                  </option>
+                ))}
+              </select>
             </div>
-          </form>
-        </Card>
 
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Conversões Recentes</h3>
-          <div className="space-y-3">
-            {[
-              {
-                id: "CONV-001",
-                report: "Projeto Alpha",
-                conversion: "JORC → NI 43-101",
-                format: "PDF",
-                status: "completed",
-                date: "20/10/2025",
-              },
-              {
-                id: "CONV-002",
-                report: "Projeto Beta",
-                conversion: "NI 43-101 → PERC",
-                format: "DOCX",
-                status: "processing",
-                date: "21/10/2025",
-              },
-            ].map((conv) => (
-              <div
-                key={conv.id}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+            {/* Format Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Formato de Exportação
+              </label>
+              <select
+                value={format}
+                onChange={(e) => setFormat(e.target.value as any)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               >
-                <div className="flex-1">
-                  <p className="font-medium">{conv.report}</p>
-                  <p className="text-sm text-gray-600">
-                    {conv.id} • {conv.conversion} • {conv.format} • {conv.date}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {conv.status === "completed" ? (
-                    <>
-                      <Badge variant="default" className="bg-green-600">
+                {formats.map((fmt) => (
+                  <option key={fmt.id} value={fmt.id}>
+                    {fmt.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+            <p className="text-sm text-amber-800">
+              ⏱️ <strong>Tempo estimado:</strong> 30-60 segundos para geração do arquivo
+            </p>
+          </div>
+
+          <button
+            onClick={handleExport}
+            disabled={exportMutation.isPending || !selectedReportId}
+            className="w-full bg-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors"
+          >
+            {exportMutation.isPending ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Exportando...
+              </>
+            ) : (
+              <>
+                <Download className="w-5 h-5" />
+                Iniciar Exportação
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Exports History */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Exportações Recentes</h2>
+          
+          {exportsQuery.isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+            </div>
+          ) : exportsQuery.data && exportsQuery.data.length > 0 ? (
+            <div className="space-y-3">
+              {exportsQuery.data.map((exp: any) => {
+                const FormatIcon = getFormatIcon(exp.format);
+                return (
+                  <div
+                    key={exp.id}
+                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`p-2 bg-gray-100 rounded-lg ${getFormatColor(exp.format)}`}>
+                        <FormatIcon className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">
+                          {exp.fromStandard} → {exp.toStandard}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          {new Date(exp.createdAt!).toLocaleString('pt-BR')}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="flex items-center gap-1 text-sm text-green-600 font-medium">
+                        <CheckCircle2 className="w-4 h-4" />
                         Concluído
-                      </Badge>
-                      <Button size="sm" variant="outline">
-                        <Download className="h-4 w-4 mr-2" />
-                        Baixar
-                      </Button>
-                    </>
-                  ) : (
-                    <Badge variant="secondary">
-                      <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                      Processando
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        {/* Guard-Rail Modal */}
-        <GuardRailModal
-          open={showGuardRail}
-          onClose={() => setShowGuardRail(false)}
-          reportId={selectedReport}
-          action="Exportação"
-        />
+                      </span>
+                      <a
+                        href={exp.s3Url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                      >
+                        <Download className="w-4 h-4" />
+                        Baixar {exp.format}
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <Clock className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+              <p className="text-gray-600">Nenhuma exportação realizada ainda</p>
+            </div>
+          )}
+        </div>
       </div>
     </DashboardLayout>
   );
