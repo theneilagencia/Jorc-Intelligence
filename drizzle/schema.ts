@@ -2,6 +2,9 @@ import { pgTable, pgEnum, varchar, text, timestamp, integer, real, boolean, json
 
 // Define enums
 export const roleEnum = pgEnum('role', ['user', 'admin', 'parceiro', 'backoffice']);
+export const planEnum = pgEnum('plan', ['START', 'PRO', 'ENTERPRISE']);
+export const licenseStatusEnum = pgEnum('license_status', ['active', 'expired', 'cancelled', 'suspended']);
+export const billingPeriodEnum = pgEnum('billing_period', ['monthly', 'annual']);
 export const standardEnum = pgEnum('standard', ['JORC_2012', 'NI_43_101', 'PERC', 'SAMREC', 'CRIRSCO']);
 export const statusEnum = pgEnum('status', ['draft', 'parsing', 'needs_review', 'ready_for_audit', 'audited', 'certified', 'exported']);
 export const sourceTypeEnum = pgEnum('source_type', ['internal', 'external']);
@@ -18,10 +21,13 @@ export const exportStatusEnum = pgEnum('export_status', ['pending', 'processing'
 export const users = pgTable("users", {
   id: varchar("id", { length: 64 }).primaryKey(),
   name: text("name"),
-  email: varchar("email", { length: 320 }),
+  email: varchar("email", { length: 320 }).unique().notNull(),
+  passwordHash: text("passwordHash"), // For local auth
+  googleId: varchar("googleId", { length: 128 }), // For Google OAuth
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: roleEnum("role").default('user').notNull(),
   tenantId: varchar("tenantId", { length: 64 }).notNull(),
+  refreshToken: text("refreshToken"), // JWT refresh token
   createdAt: timestamp("createdAt").defaultNow(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow(),
 });
@@ -119,7 +125,33 @@ export const exports = pgTable("exports", {
   completedAt: timestamp("completedAt"),
 });
 
+/**
+ * Licenses table for subscription management
+ */
+export const licenses = pgTable("licenses", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  userId: varchar("userId", { length: 64 }).notNull().references(() => users.id),
+  tenantId: varchar("tenantId", { length: 64 }).notNull(),
+  plan: planEnum("plan").default('START').notNull(),
+  status: licenseStatusEnum("status").default('active').notNull(),
+  billingPeriod: billingPeriodEnum("billingPeriod"),
+  stripeCustomerId: varchar("stripeCustomerId", { length: 128 }),
+  stripeSubscriptionId: varchar("stripeSubscriptionId", { length: 128 }),
+  stripePriceId: varchar("stripePriceId", { length: 128 }),
+  reportsLimit: integer("reportsLimit").default(1).notNull(), // START: 1, PRO: 5, ENTERPRISE: 15
+  reportsUsed: integer("reportsUsed").default(0).notNull(),
+  projectsLimit: integer("projectsLimit").default(1).notNull(), // START: 1, PRO: 3, ENTERPRISE: unlimited (-1)
+  validFrom: timestamp("validFrom").defaultNow().notNull(),
+  validUntil: timestamp("validUntil"), // null = unlimited (for START)
+  lastResetAt: timestamp("lastResetAt").defaultNow(), // For monthly report reset
+  createdAt: timestamp("createdAt").defaultNow(),
+  updatedAt: timestamp("updatedAt").defaultNow(),
+});
+
 export type InsertUser = typeof users.$inferInsert;
 export type SelectUser = typeof users.$inferSelect;
 export type User = SelectUser;
+export type InsertLicense = typeof licenses.$inferInsert;
+export type SelectLicense = typeof licenses.$inferSelect;
+export type License = SelectLicense;
 
