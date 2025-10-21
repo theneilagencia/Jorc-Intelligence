@@ -1,22 +1,32 @@
-import { mysqlEnum, mysqlTable, text, timestamp, varchar, json, boolean, float, int } from "drizzle-orm/mysql-core";
+import { pgTable, pgEnum, varchar, text, timestamp, integer, real, boolean, jsonb } from "drizzle-orm/pg-core";
+
+// Define enums
+export const roleEnum = pgEnum('role', ['user', 'admin', 'parceiro', 'backoffice']);
+export const standardEnum = pgEnum('standard', ['JORC_2012', 'NI_43_101', 'PERC', 'SAMREC', 'CRIRSCO']);
+export const statusEnum = pgEnum('status', ['draft', 'parsing', 'needs_review', 'ready_for_audit', 'audited', 'certified', 'exported']);
+export const sourceTypeEnum = pgEnum('source_type', ['internal', 'external']);
+export const uploadStatusEnum = pgEnum('upload_status', ['uploading', 'uploaded', 'parsing', 'completed', 'failed']);
+export const auditTypeEnum = pgEnum('audit_type', ['full', 'partial']);
+export const regulatorEnum = pgEnum('regulator', ['ASX', 'TSX', 'JSE', 'CRIRSCO']);
+export const certStatusEnum = pgEnum('cert_status', ['pending', 'in_review', 'approved', 'rejected']);
+export const exportFormatEnum = pgEnum('export_format', ['PDF', 'DOCX', 'XLSX']);
+export const exportStatusEnum = pgEnum('export_status', ['pending', 'processing', 'completed', 'failed']);
 
 /**
  * Core user table backing auth flow.
- * Extend this file with additional tables as your product grows.
- * Columns use camelCase to match both database fields and generated types.
  */
-export const users = mysqlTable("users", {
+export const users = pgTable("users", {
   id: varchar("id", { length: 64 }).primaryKey(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "admin", "parceiro", "backoffice"]).default("user").notNull(),
+  role: roleEnum("role").default('user').notNull(),
   tenantId: varchar("tenantId", { length: 64 }).notNull(),
   createdAt: timestamp("createdAt").defaultNow(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow(),
 });
 
-export const tenants = mysqlTable("tenants", {
+export const tenants = pgTable("tenants", {
   id: varchar("id", { length: 64 }).primaryKey(),
   name: text("name").notNull(),
   logoUrl: text("logoUrl"),
@@ -24,157 +34,90 @@ export const tenants = mysqlTable("tenants", {
   createdAt: timestamp("createdAt").defaultNow(),
 });
 
-export const reports = mysqlTable("reports", {
+export const reports = pgTable("reports", {
   id: varchar("id", { length: 64 }).primaryKey(),
   tenantId: varchar("tenantId", { length: 64 }).notNull(),
   userId: varchar("userId", { length: 64 }).notNull(),
-  
-  // Source and detection
-  sourceType: mysqlEnum("sourceType", ["internal", "external"]).default("internal").notNull(),
-  detectedStandard: varchar("detectedStandard", { length: 32 }),
-  
-  // Original fields
-  standard: varchar("standard", { length: 32 }).notNull(),
   title: text("title").notNull(),
-  
-  // Enhanced status for ETAPA 2
-  status: mysqlEnum("status", [
-    "draft",
-    "processing",
-    "parsing",
-    "needs_review",
-    "ready_for_audit",
-    "audited",
-    "certified",
-    "exported",
-    "completed",
-    "failed"
-  ]).default("draft").notNull(),
-  
-  // S3 storage
-  s3Key: text("s3Key"),
-  s3Url: text("s3Url"),
+  standard: standardEnum("standard").notNull(),
+  status: statusEnum("status").default('draft').notNull(),
+  sourceType: sourceTypeEnum("sourceType").default('internal'),
+  detectedStandard: standardEnum("detectedStandard"),
   s3NormalizedUrl: text("s3NormalizedUrl"),
   s3OriginalUrl: text("s3OriginalUrl"),
-  
-  // Parsing metadata
-  parsingSummary: json("parsingSummary"),
-  metadata: json("metadata"),
-  
-  // Timestamps
+  parsingSummary: jsonb("parsingSummary"),
   createdAt: timestamp("createdAt").defaultNow(),
   updatedAt: timestamp("updatedAt").defaultNow(),
 });
 
-// Upload tracking table
-export const uploads = mysqlTable("uploads", {
+export const uploads = pgTable("uploads", {
   id: varchar("id", { length: 64 }).primaryKey(),
+  reportId: varchar("reportId", { length: 64 }).notNull(),
   tenantId: varchar("tenantId", { length: 64 }).notNull(),
   userId: varchar("userId", { length: 64 }).notNull(),
-  reportId: varchar("reportId", { length: 64 }),
-  
   fileName: text("fileName").notNull(),
-  fileSize: varchar("fileSize", { length: 32 }),
-  fileType: varchar("fileType", { length: 64 }),
-  
-  s3Key: text("s3Key").notNull(),
+  fileSize: integer("fileSize").notNull(),
+  mimeType: varchar("mimeType", { length: 128 }).notNull(),
   s3Url: text("s3Url"),
-  
-  status: mysqlEnum("status", ["uploading", "uploaded", "parsing", "completed", "failed"]).default("uploading").notNull(),
-  errorMessage: text("errorMessage"),
-  
+  status: uploadStatusEnum("status").default('uploading').notNull(),
+  createdAt: timestamp("createdAt").defaultNow(),
+  completedAt: timestamp("completedAt"),
+});
+
+export const reviewLogs = pgTable("reviewLogs", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  reportId: varchar("reportId", { length: 64 }).notNull(),
+  userId: varchar("userId", { length: 64 }).notNull(),
+  fieldPath: text("fieldPath").notNull(),
+  oldValue: text("oldValue"),
+  newValue: text("newValue"),
+  createdAt: timestamp("createdAt").defaultNow(),
+});
+
+export const audits = pgTable("audits", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  reportId: varchar("reportId", { length: 64 }).notNull(),
+  tenantId: varchar("tenantId", { length: 64 }).notNull(),
+  userId: varchar("userId", { length: 64 }).notNull(),
+  auditType: auditTypeEnum("auditType").notNull(),
+  score: real("score").notNull(),
+  totalRules: integer("totalRules").notNull(),
+  passedRules: integer("passedRules").notNull(),
+  failedRules: integer("failedRules").notNull(),
+  krcisJson: jsonb("krcisJson").notNull(),
+  recommendationsJson: jsonb("recommendationsJson").notNull(),
+  pdfUrl: text("pdfUrl"),
+  createdAt: timestamp("createdAt").defaultNow(),
+});
+
+export const certifications = pgTable("certifications", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  reportId: varchar("reportId", { length: 64 }).notNull(),
+  tenantId: varchar("tenantId", { length: 64 }).notNull(),
+  userId: varchar("userId", { length: 64 }).notNull(),
+  regulator: regulatorEnum("regulator").notNull(),
+  status: certStatusEnum("status").default('pending').notNull(),
+  checklistJson: jsonb("checklistJson").notNull(),
+  pendingCount: integer("pendingCount").notNull(),
+  pdfUrl: text("pdfUrl"),
+  notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow(),
   updatedAt: timestamp("updatedAt").defaultNow(),
 });
 
-// Review logs for audit trail
-export const reviewLogs = mysqlTable("reviewLogs", {
+export const exports = pgTable("exports", {
   id: varchar("id", { length: 64 }).primaryKey(),
   reportId: varchar("reportId", { length: 64 }).notNull(),
   tenantId: varchar("tenantId", { length: 64 }).notNull(),
   userId: varchar("userId", { length: 64 }).notNull(),
-  
-  fieldPath: text("fieldPath").notNull(),
-  previousValue: text("previousValue"),
-  newValue: text("newValue").notNull(),
-  
+  targetStandard: standardEnum("targetStandard").notNull(),
+  format: exportFormatEnum("format").notNull(),
+  status: exportStatusEnum("status").default('pending').notNull(),
+  fileUrl: text("fileUrl"),
   createdAt: timestamp("createdAt").defaultNow(),
+  completedAt: timestamp("completedAt"),
 });
 
-export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
-
-export type Report = typeof reports.$inferSelect;
-export type InsertReport = typeof reports.$inferInsert;
-
-export type Upload = typeof uploads.$inferSelect;
-export type InsertUpload = typeof uploads.$inferInsert;
-
-export type ReviewLog = typeof reviewLogs.$inferSelect;
-export type InsertReviewLog = typeof reviewLogs.$inferInsert;
-
-export const audits = mysqlTable("audits", {
-  id: varchar("id", { length: 64 }).primaryKey(),
-  reportId: varchar("reportId", { length: 64 }).notNull(),
-  tenantId: varchar("tenantId", { length: 64 }).notNull(),
-  userId: varchar("userId", { length: 64 }).notNull(),
-  
-  auditType: mysqlEnum("auditType", ["full", "partial"]).default("full").notNull(),
-  score: float("score").notNull(),
-  totalRules: int("totalRules").notNull(),
-  passedRules: int("passedRules").notNull(),
-  failedRules: int("failedRules").notNull(),
-  
-  krcisJson: json("krcisJson"),
-  recommendationsJson: json("recommendationsJson"),
-  
-  pdfUrl: text("pdfUrl"),
-  
-  createdAt: timestamp("createdAt").defaultNow(),
-});
-
-export type Audit = typeof audits.$inferSelect;
-export type InsertAudit = typeof audits.$inferInsert;
-
-export const exports = mysqlTable("exports", {
-  id: varchar("id", { length: 64 }).primaryKey(),
-  reportId: varchar("reportId", { length: 64 }).notNull(),
-  tenantId: varchar("tenantId", { length: 64 }).notNull(),
-  userId: varchar("userId", { length: 64 }).notNull(),
-  
-  fromStandard: varchar("fromStandard", { length: 32 }).notNull(),
-  toStandard: varchar("toStandard", { length: 32 }).notNull(),
-  format: mysqlEnum("format", ["PDF", "DOCX", "XLSX"]).notNull(),
-  
-  s3Url: text("s3Url").notNull(),
-  
-  createdAt: timestamp("createdAt").defaultNow(),
-});
-
-export type Export = typeof exports.$inferSelect;
-export type InsertExport = typeof exports.$inferInsert;
-
-export const certifications = mysqlTable("certifications", {
-  id: varchar("id", { length: 64 }).primaryKey(),
-  reportId: varchar("reportId", { length: 64 }).notNull(),
-  tenantId: varchar("tenantId", { length: 64 }).notNull(),
-  userId: varchar("userId", { length: 64 }).notNull(),
-  
-  regulator: mysqlEnum("regulator", ["ASX", "TSX", "JSE", "CRIRSCO"]).notNull(),
-  status: mysqlEnum("status", ["pending", "in_progress", "approved", "rejected"]).default("pending").notNull(),
-  
-  checklistJson: json("checklistJson"),
-  pendingItemsJson: json("pendingItemsJson"),
-  
-  complianceScore: float("complianceScore"),
-  pdfUrl: text("pdfUrl"),
-  
-  notes: text("notes"),
-  
-  submittedAt: timestamp("submittedAt").defaultNow(),
-  reviewedAt: timestamp("reviewedAt"),
-});
-
-export type Certification = typeof certifications.$inferSelect;
-export type InsertCertification = typeof certifications.$inferInsert;
+export type SelectUser = typeof users.$inferSelect;
 
