@@ -1,9 +1,71 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { trpc } from "@/lib/trpc";
 import { FileText } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function GenerateReport() {
+  const [standard, setStandard] = useState<string>("JORC_2012");
+  const [title, setTitle] = useState<string>("");
+  const [projectName, setProjectName] = useState<string>("");
+  const [location, setLocation] = useState<string>("");
+
+  const utils = trpc.useUtils();
+  
+  // Mutation para criar relatório
+  const createReport = trpc.technicalReports.generate.create.useMutation({
+    onSuccess: (data) => {
+      toast.success("Relatório criado com sucesso!", {
+        description: `ID: ${data.reportId}`,
+      });
+      // Limpar formulário
+      setTitle("");
+      setProjectName("");
+      setLocation("");
+      // Invalidar lista de relatórios
+      utils.technicalReports.generate.list.invalidate();
+    },
+    onError: (error) => {
+      toast.error("Erro ao criar relatório", {
+        description: error.message,
+      });
+    },
+  });
+
+  // Query para listar relatórios
+  const { data: reports, isLoading } = trpc.technicalReports.generate.list.useQuery({
+    limit: 10,
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!title || title.length < 5) {
+      toast.error("Título inválido", {
+        description: "O título deve ter no mínimo 5 caracteres",
+      });
+      return;
+    }
+
+    createReport.mutate({
+      standard: standard as any,
+      title,
+      projectName: projectName || undefined,
+      location: location || undefined,
+    });
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -27,35 +89,67 @@ export default function GenerateReport() {
             </div>
           </div>
 
-          <div className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">
-                Padrão Internacional
-              </label>
-              <select className="w-full border rounded-lg px-4 py-2">
-                <option>JORC 2012</option>
-                <option>NI 43-101</option>
-                <option>PERC</option>
-                <option>SAMREC</option>
-                <option>CRIRSCO</option>
-              </select>
+              <Label htmlFor="standard">Padrão Internacional</Label>
+              <Select value={standard} onValueChange={setStandard}>
+                <SelectTrigger id="standard">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="JORC_2012">JORC 2012</SelectItem>
+                  <SelectItem value="NI_43_101">NI 43-101</SelectItem>
+                  <SelectItem value="PERC">PERC</SelectItem>
+                  <SelectItem value="SAMREC">SAMREC</SelectItem>
+                  <SelectItem value="CRIRSCO">CRIRSCO</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">
-                Título do Relatório
-              </label>
-              <input
+              <Label htmlFor="title">Título do Relatório *</Label>
+              <Input
+                id="title"
                 type="text"
                 placeholder="Ex: Relatório de Recursos Minerais - Projeto XYZ"
-                className="w-full border rounded-lg px-4 py-2"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="projectName">Nome do Projeto</Label>
+              <Input
+                id="projectName"
+                type="text"
+                placeholder="Ex: Projeto Alpha"
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="location">Localização</Label>
+              <Input
+                id="location"
+                type="text"
+                placeholder="Ex: Minas Gerais, Brasil"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
               />
             </div>
 
             <div className="pt-4">
-              <Button className="w-full">Iniciar Geração</Button>
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={createReport.isPending}
+              >
+                {createReport.isPending ? "Criando..." : "Iniciar Geração"}
+              </Button>
             </div>
-          </div>
+          </form>
         </Card>
 
         <div className="text-sm text-gray-500">
@@ -64,6 +158,35 @@ export default function GenerateReport() {
             preenchidas ou preencher manualmente os dados do relatório.
           </p>
         </div>
+
+        {/* Lista de relatórios */}
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Relatórios Recentes</h3>
+          {isLoading ? (
+            <p className="text-gray-500">Carregando...</p>
+          ) : reports && reports.length > 0 ? (
+            <div className="space-y-3">
+              {reports.map((report) => (
+                <div
+                  key={report.id}
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                >
+                  <div className="flex-1">
+                    <p className="font-medium">{report.title}</p>
+                    <p className="text-sm text-gray-600">
+                      {report.id} • {report.standard} • {report.status}
+                    </p>
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {new Date(report.createdAt || "").toLocaleDateString("pt-BR")}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500">Nenhum relatório encontrado</p>
+          )}
+        </Card>
       </div>
     </DashboardLayout>
   );

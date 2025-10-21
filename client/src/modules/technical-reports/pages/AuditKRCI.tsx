@@ -2,9 +2,78 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { trpc } from "@/lib/trpc";
 import { Shield, CheckCircle, AlertTriangle, FileSearch } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+
+const KRCI_RULES = [
+  "KRCI_01_DATA_QUALITY",
+  "KRCI_02_SAMPLING_METHOD",
+  "KRCI_03_ESTIMATION_TECHNIQUE",
+  "KRCI_04_GEOLOGICAL_MODEL",
+  "KRCI_05_MINERAL_RESOURCES",
+  "KRCI_06_ORE_RESERVES",
+  "KRCI_07_COMPETENT_PERSON",
+  "KRCI_08_MATERIAL_INFORMATION",
+];
 
 export default function AuditKRCI() {
+  const [selectedReport, setSelectedReport] = useState<string>("");
+  const [selectedRules, setSelectedRules] = useState<string[]>(KRCI_RULES);
+
+  // Query para listar relatórios
+  const { data: reports } = trpc.technicalReports.generate.list.useQuery({
+    limit: 20,
+  });
+
+  // Mutation para executar auditoria
+  const runAudit = trpc.technicalReports.audit.run.useMutation({
+    onSuccess: (data) => {
+      toast.success("Auditoria concluída!", {
+        description: `Score total: ${data.totalScore}% - ${data.rulesChecked} regras verificadas`,
+      });
+    },
+    onError: (error) => {
+      toast.error("Erro ao executar auditoria", {
+        description: error.message,
+      });
+    },
+  });
+
+  const handleToggleRule = (rule: string) => {
+    setSelectedRules((prev) =>
+      prev.includes(rule) ? prev.filter((r) => r !== rule) : [...prev, rule]
+    );
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!selectedReport) {
+      toast.error("Selecione um relatório");
+      return;
+    }
+
+    if (selectedRules.length === 0) {
+      toast.error("Selecione ao menos uma regra");
+      return;
+    }
+
+    runAudit.mutate({
+      reportId: selectedReport,
+      rules: selectedRules,
+    });
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -66,50 +135,57 @@ export default function AuditKRCI() {
             </div>
           </div>
 
-          <div className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">
-                Relatório
-              </label>
-              <select className="w-full border rounded-lg px-4 py-2">
-                <option>Selecione um relatório...</option>
-                <option>Relatório JORC 2012 - Projeto Alpha</option>
-                <option>Relatório NI 43-101 - Projeto Beta</option>
-              </select>
+              <Label htmlFor="report">Relatório</Label>
+              <Select value={selectedReport} onValueChange={setSelectedReport}>
+                <SelectTrigger id="report">
+                  <SelectValue placeholder="Selecione um relatório..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {reports?.map((report) => (
+                    <SelectItem key={report.id} value={report.id}>
+                      {report.title} ({report.standard})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">
-                Regras de Auditoria
-              </label>
+              <Label>Regras de Auditoria</Label>
               <div className="border rounded-lg p-4 max-h-48 overflow-y-auto">
                 <div className="space-y-2">
-                  {[
-                    "KRCI_01 - Qualidade de Dados",
-                    "KRCI_02 - Método de Amostragem",
-                    "KRCI_03 - Técnica de Estimativa",
-                    "KRCI_04 - Modelo Geológico",
-                    "KRCI_05 - Recursos Minerais",
-                    "KRCI_06 - Reservas de Minério",
-                    "KRCI_07 - Pessoa Competente",
-                    "KRCI_08 - Informação Material",
-                  ].map((rule, idx) => (
-                    <label key={idx} className="flex items-center gap-2">
-                      <input type="checkbox" defaultChecked className="rounded" />
-                      <span className="text-sm">{rule}</span>
+                  {KRCI_RULES.map((rule, idx) => (
+                    <label key={idx} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedRules.includes(rule)}
+                        onChange={() => handleToggleRule(rule)}
+                        className="rounded"
+                      />
+                      <span className="text-sm">
+                        {rule.replace(/_/g, " ").replace("KRCI ", "KRCI_")}
+                      </span>
                     </label>
                   ))}
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                20 regras disponíveis (mostrando 8)
+                {selectedRules.length} de 20 regras selecionadas
               </p>
             </div>
 
             <div className="pt-4">
-              <Button className="w-full">Executar Auditoria</Button>
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={runAudit.isPending}
+              >
+                {runAudit.isPending ? "Executando..." : "Executar Auditoria"}
+              </Button>
             </div>
-          </div>
+          </form>
         </Card>
 
         <Card className="p-6">
