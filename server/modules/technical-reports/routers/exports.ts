@@ -118,10 +118,10 @@ export const exportsRouter = router({
         reportId,
         tenantId: user.tenantId,
         userId: user.id,
-        fromStandard: report.standard,
-        toStandard,
-        format,
-        s3Url,
+        targetStandard: toStandard as any,
+        format: format as any,
+        status: 'completed' as any,
+        fileUrl: s3Url,
       });
 
       return {

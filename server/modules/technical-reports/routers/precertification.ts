@@ -123,10 +123,9 @@ export const precertificationRouter = router({
         tenantId: user.tenantId,
         userId: user.id,
         regulator,
-        status: complianceResult.score >= 90 ? 'approved' : complianceResult.score >= 70 ? 'pending' : 'rejected',
+        status: (complianceResult.score >= 90 ? 'approved' : complianceResult.score >= 70 ? 'pending' : 'rejected') as any,
         checklistJson: complianceResult.checklist,
-        pendingItemsJson: complianceResult.pendingRequirements,
-        complianceScore: complianceResult.score,
+        pendingCount: complianceResult.pendingRequirements.length,
         pdfUrl,
         notes,
       });
@@ -169,7 +168,7 @@ export const precertificationRouter = router({
               eq(certifications.reportId, reportId)
             )
           )
-          .orderBy(desc(certifications.submittedAt))
+          .orderBy(desc(certifications.createdAt))
           .limit(50);
         return results;
       }
@@ -178,7 +177,7 @@ export const precertificationRouter = router({
         .select()
         .from(certifications)
         .where(eq(certifications.tenantId, user.tenantId))
-        .orderBy(desc(certifications.submittedAt))
+        .orderBy(desc(certifications.createdAt))
         .limit(50);
       return results;
     }),
