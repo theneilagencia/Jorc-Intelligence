@@ -1,0 +1,9 @@
+{
+  "query": "SELECT id, title, status FROM reports WHERE id = 'rpt_1761066383705_a68d9r6j85'",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user kmE78wvy7GENLRS.root --database VTCff3KQpuhwB85XqFCeht --execute SELECT id, title, status FROM reports WHERE id = 'rpt_1761066383705_a68d9r6j85'",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 49
+}
