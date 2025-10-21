@@ -59,11 +59,7 @@ export const technicalReportsRouter = router({
           standard: input.standard,
           title: input.title,
           status: "draft",
-          metadata: JSON.stringify({
-            projectName: input.projectName,
-            location: input.location,
-            ...input.metadata,
-          }),
+          sourceType: "internal",
         });
 
         return {
@@ -79,7 +75,7 @@ export const technicalReportsRouter = router({
     list: protectedProcedure
       .input(
         z.object({
-          status: z.enum(["draft", "processing", "completed", "failed"]).optional(),
+          status: z.enum(["draft", "parsing", "needs_review", "ready_for_audit", "audited", "certified", "exported"]).optional(),
           limit: z.number().min(1).max(100).default(20),
         }).optional()
       )
