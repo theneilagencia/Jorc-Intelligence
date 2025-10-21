@@ -6,11 +6,23 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 
+// Technical Reports Module Pages
+import GenerateReport from "./modules/technical-reports/pages/GenerateReport";
+import AuditKRCI from "./modules/technical-reports/pages/AuditKRCI";
+import PreCertification from "./modules/technical-reports/pages/PreCertification";
+import ExportStandards from "./modules/technical-reports/pages/ExportStandards";
+
 function Router() {
-  // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      
+      {/* Technical Reports Routes */}
+      <Route path={"/reports/generate"} component={GenerateReport} />
+      <Route path={"/reports/audit"} component={AuditKRCI} />
+      <Route path={"/reports/precert"} component={PreCertification} />
+      <Route path={"/reports/export"} component={ExportStandards} />
+      
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
@@ -18,18 +30,10 @@ function Router() {
   );
 }
 
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
-
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="light"
-        // switchable
-      >
+      <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
           <Router />
@@ -40,3 +44,4 @@ function App() {
 }
 
 export default App;
+
