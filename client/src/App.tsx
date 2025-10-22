@@ -40,6 +40,7 @@ function Router() {
       {/* Páginas públicas (sem lazy loading) */}
       <Route path={"/"} component={Home} />
       <Route path={"/pricing"} component={Pricing} />
+      <Route path={"/plans"} component={Pricing} />
       <Route path={"/404"} component={NotFound} />
       
       {/* Páginas autenticadas (com lazy loading) */}
