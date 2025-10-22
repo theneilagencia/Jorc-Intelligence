@@ -32,37 +32,29 @@ router.post('/init-db', async (req, res) => {
 
     // Step 1: Create enums (if not exist)
     console.log('[Init DB] Creating enums...');
-    await db.execute(sql`
-      DO $$ BEGIN
-        CREATE TYPE role AS ENUM ('user', 'admin', 'parceiro', 'backoffice');
-      EXCEPTION
-        WHEN duplicate_object THEN null;
-      END $$;
-    `);
+    try {
+      await db.execute(sql`CREATE TYPE role AS ENUM ('user', 'admin', 'parceiro', 'backoffice')`);
+    } catch (e: any) {
+      if (!e.message?.includes('already exists')) throw e;
+    }
     
-    await db.execute(sql`
-      DO $$ BEGIN
-        CREATE TYPE plan AS ENUM ('START', 'PRO', 'ENTERPRISE');
-      EXCEPTION
-        WHEN duplicate_object THEN null;
-      END $$;
-    `);
+    try {
+      await db.execute(sql`CREATE TYPE plan AS ENUM ('START', 'PRO', 'ENTERPRISE')`);
+    } catch (e: any) {
+      if (!e.message?.includes('already exists')) throw e;
+    }
     
-    await db.execute(sql`
-      DO $$ BEGIN
-        CREATE TYPE license_status AS ENUM ('active', 'expired', 'cancelled', 'suspended');
-      EXCEPTION
-        WHEN duplicate_object THEN null;
-      END $$;
-    `);
+    try {
+      await db.execute(sql`CREATE TYPE license_status AS ENUM ('active', 'expired', 'cancelled', 'suspended')`);
+    } catch (e: any) {
+      if (!e.message?.includes('already exists')) throw e;
+    }
     
-    await db.execute(sql`
-      DO $$ BEGIN
-        CREATE TYPE billing_period AS ENUM ('monthly', 'annual');
-      EXCEPTION
-        WHEN duplicate_object THEN null;
-      END $$;
-    `);
+    try {
+      await db.execute(sql`CREATE TYPE billing_period AS ENUM ('monthly', 'annual')`);
+    } catch (e: any) {
+      if (!e.message?.includes('already exists')) throw e;
+    }
 
     // Step 2: Create users table
     console.log('[Init DB] Creating users table...');
