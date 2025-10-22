@@ -124,7 +124,7 @@ export default function Home() {
       <section className="container mx-auto px-4 py-20">
         <div className="max-w-5xl mx-auto">
           <div className="text-center space-y-4 mb-12">
-            <h2 className="text-4xl font-bold">Veja a QIVO Mining em Ação</h2>
+            <h2 className="text-4xl font-bold">Saiba mais sobre o Qivo Mining</h2>
             <p className="text-lg text-slate-600">
               Conheça como transformamos compliance em valor estratégico
             </p>
