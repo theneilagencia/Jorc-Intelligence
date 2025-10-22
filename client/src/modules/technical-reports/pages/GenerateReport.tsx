@@ -48,10 +48,15 @@ export default function GenerateReport() {
     },
   });
 
-  // Query para listar relatórios
-  const { data: reports, isLoading } = trpc.technicalReports.generate.list.useQuery({
-    limit: 10,
-  });
+  // Query para listar relatórios (sem polling para evitar re-renders)
+  const { data: reports, isLoading } = trpc.technicalReports.generate.list.useQuery(
+    { limit: 10 },
+    {
+      refetchInterval: false,  // Desabilitar polling automático
+      refetchOnWindowFocus: false,  // Não refetch ao focar janela
+      staleTime: 5 * 60 * 1000,  // Considerar dados frescos por 5 minutos
+    }
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

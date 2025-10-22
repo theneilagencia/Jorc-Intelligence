@@ -30,8 +30,25 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
+          // React ecosystem
           vendor: ["react", "react-dom", "wouter"],
-          ui: ["@radix-ui/react-dialog", "@radix-ui/react-dropdown-menu"],
+          
+          // UI components (Radix UI)
+          ui: [
+            "@radix-ui/react-dialog",
+            "@radix-ui/react-dropdown-menu",
+            "@radix-ui/react-select",
+            "@radix-ui/react-tabs",
+            "@radix-ui/react-avatar",
+            "@radix-ui/react-label",
+            "@radix-ui/react-slot",
+          ],
+          
+          // tRPC and API
+          trpc: ["@trpc/client", "@trpc/react-query", "@tanstack/react-query"],
+          
+          // Icons
+          icons: ["lucide-react"],
         },
       },
     },

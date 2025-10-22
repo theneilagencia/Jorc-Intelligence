@@ -9,9 +9,23 @@ export default function ExportStandards() {
   const [toStandard, setToStandard] = useState<'JORC_2012' | 'NI_43_101' | 'PERC' | 'SAMREC' | 'CBRR'>('JORC_2012');
   const [format, setFormat] = useState<'PDF' | 'DOCX' | 'XLSX'>('PDF');
 
-  // Queries
-  const reportsQuery = trpc.technicalReports.generate.list.useQuery();
-  const exportsQuery = trpc.technicalReports.exports.list.useQuery({});
+  // Queries (sem polling)
+  const reportsQuery = trpc.technicalReports.generate.list.useQuery(
+    undefined,
+    {
+      refetchInterval: false,
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000,
+    }
+  );
+  const exportsQuery = trpc.technicalReports.exports.list.useQuery(
+    {},
+    {
+      refetchInterval: false,
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000,
+    }
+  );
 
   // Mutations
   const exportMutation = trpc.technicalReports.exports.run.useMutation({

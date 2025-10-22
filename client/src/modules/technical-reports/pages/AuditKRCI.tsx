@@ -21,15 +21,25 @@ export default function AuditKRCI() {
   const [showGuardRail, setShowGuardRail] = useState<boolean>(false);
   const [auditResult, setAuditResult] = useState<any>(null);
 
-  // Query para listar relatórios
-  const { data: reports } = trpc.technicalReports.generate.list.useQuery({
-    limit: 20,
-  });
+  // Query para listar relatórios (sem polling)
+  const { data: reports } = trpc.technicalReports.generate.list.useQuery(
+    { limit: 20 },
+    {
+      refetchInterval: false,
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000,
+    }
+  );
 
-  // Query para listar auditorias
-  const { data: audits } = trpc.technicalReports.audit.list.useQuery({
-    limit: 10,
-  });
+  // Query para listar auditorias (sem polling)
+  const { data: audits } = trpc.technicalReports.audit.list.useQuery(
+    { limit: 10 },
+    {
+      refetchInterval: false,
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000,
+    }
+  );
 
   // Mutation para executar auditoria
   const runAudit = trpc.technicalReports.audit.run.useMutation({

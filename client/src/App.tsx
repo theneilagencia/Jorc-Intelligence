@@ -1,53 +1,67 @@
+import { lazy, Suspense } from 'react';
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+
+// Páginas públicas (carregadas imediatamente)
 import Home from "./pages/Home";
-
-// Technical Reports Module Pages
-import GenerateReport from "./modules/technical-reports/pages/GenerateReport";
-import AuditKRCI from "./modules/technical-reports/pages/AuditKRCI";
-import PreCertification from "./modules/technical-reports/pages/PreCertification";
-import ExportStandards from "./modules/technical-reports/pages/ExportStandards";
-import ReviewReport from "./modules/technical-reports/pages/ReviewReport";
-
-// Pricing and Account Pages
 import Pricing from "./pages/Pricing";
-import Success from "./pages/Success";
-import Cancel from "./pages/Cancel";
-import Account from "./pages/Account";
+import NotFound from "@/pages/NotFound";
 
-// Auth Pages
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import AuthCallback from "./pages/AuthCallback";
+// Auth Pages (lazy loading)
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+const AuthCallback = lazy(() => import("./pages/AuthCallback"));
+
+// Account Pages (lazy loading)
+const Success = lazy(() => import("./pages/Success"));
+const Cancel = lazy(() => import("./pages/Cancel"));
+const Account = lazy(() => import("./pages/Account"));
+
+// Technical Reports Module Pages (lazy loading)
+const GenerateReport = lazy(() => import("./modules/technical-reports/pages/GenerateReport"));
+const AuditKRCI = lazy(() => import("./modules/technical-reports/pages/AuditKRCI"));
+const PreCertification = lazy(() => import("./modules/technical-reports/pages/PreCertification"));
+const ExportStandards = lazy(() => import("./modules/technical-reports/pages/ExportStandards"));
+const ReviewReport = lazy(() => import("./modules/technical-reports/pages/ReviewReport"));
+
+// Loading component
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+  </div>
+);
 
 function Router() {
   return (
     <Switch>
+      {/* Páginas públicas (sem lazy loading) */}
       <Route path={"/"} component={Home} />
-      
-      {/* Auth Routes */}
-      <Route path={"/login"} component={Login} />
-      <Route path={"/register"} component={Register} />
-      <Route path={"/auth/callback"} component={AuthCallback} />
-      
-      {/* Pricing and Account Routes */}
       <Route path={"/pricing"} component={Pricing} />
-      <Route path={"/success"} component={Success} />
-      <Route path={"/cancel"} component={Cancel} />
-      <Route path={"/account"} component={Account} />
-      
-      {/* Technical Reports Routes */}
-      <Route path={"/reports/generate"} component={GenerateReport} />
-      <Route path={"/reports/audit"} component={AuditKRCI} />
-      <Route path={"/reports/precert"} component={PreCertification} />
-      <Route path="/reports/export" component={ExportStandards} />
-      <Route path="/reports/:reportId/review" component={ReviewReport} />
-      
       <Route path={"/404"} component={NotFound} />
+      
+      {/* Páginas autenticadas (com lazy loading) */}
+      <Suspense fallback={<PageLoader />}>
+        {/* Auth Routes */}
+        <Route path={"/login"} component={Login} />
+        <Route path={"/register"} component={Register} />
+        <Route path={"/auth/callback"} component={AuthCallback} />
+        
+        {/* Account Routes */}
+        <Route path={"/success"} component={Success} />
+        <Route path={"/cancel"} component={Cancel} />
+        <Route path={"/account"} component={Account} />
+        
+        {/* Technical Reports Routes */}
+        <Route path={"/reports/generate"} component={GenerateReport} />
+        <Route path={"/reports/audit"} component={AuditKRCI} />
+        <Route path={"/reports/precert"} component={PreCertification} />
+        <Route path="/reports/export" component={ExportStandards} />
+        <Route path="/reports/:reportId/review" component={ReviewReport} />
+      </Suspense>
+      
       {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>

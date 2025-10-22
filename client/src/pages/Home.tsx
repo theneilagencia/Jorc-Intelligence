@@ -332,7 +332,7 @@ export default function Home() {
           <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <img src="/qivo-logo.png" alt="QIVO Mining" className="h-8 w-8 rounded-lg" />
+                <img src="/qivo-logo.png" alt="QIVO Mining" className="h-8 w-8 rounded-lg" loading="lazy" decoding="async" />
                 <span className="font-bold text-lg">QIVO Mining</span>
               </div>
               <p className="text-sm text-slate-600">
