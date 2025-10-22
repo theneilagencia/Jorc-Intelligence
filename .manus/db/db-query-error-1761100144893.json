@@ -1,0 +1,8 @@
+{
+  "query": "DELETE FROM licenses WHERE \"userId\" IN (SELECT id FROM users WHERE email IN ('admin@jorc.com', 'test@jorc.com', 'pro@jorc.com')); DELETE FROM users WHERE email IN ('admin@jorc.com', 'test@jorc.com', 'pro@jorc.com');",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user kmE78wvy7GENLRS.root --database VTCff3KQpuhwB85XqFCeht --execute DELETE FROM licenses WHERE \"userId\" IN (SELECT id FROM users WHERE email IN ('admin@jorc.com', 'test@jorc.com', 'pro@jorc.com')); DELETE FROM users WHERE email IN ('admin@jorc.com', 'test@jorc.com', 'pro@jorc.com');",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1146 (42S02) at line 1: Table 'vtcff3kqpuhwb85xqfceht.licenses' doesn't exist"
+  ]
+}

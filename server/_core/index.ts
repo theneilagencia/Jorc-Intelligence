@@ -9,6 +9,7 @@ import licenseRouter from "../modules/licenses/router";
 import authRouter from "../modules/auth/router";
 import { passport } from "../modules/auth/google-oauth";
 import devRouter from "../modules/dev/router";
+import initDbRouter from "../modules/dev/init-db-router";
 import { runDevSeeds } from "../modules/dev/seed";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
@@ -50,6 +51,9 @@ async function startServer() {
   
   // Development routes (only in dev mode)
   app.use("/api/dev", devRouter);
+  
+  // Database initialization route (temporary, for setup)
+  app.use("/api", initDbRouter);
   
   // Payment and License routes
   app.use("/api/payment", paymentRouter);
