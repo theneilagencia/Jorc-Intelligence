@@ -46,8 +46,8 @@ export default function RegisterPage() {
       localStorage.setItem('refreshToken', data.refreshToken);
       localStorage.setItem('user', JSON.stringify(data.user));
 
-      // Redirect to dashboard
-      setLocation('/dashboard');
+      // Redirect to account page
+      setLocation('/account');
     } catch (err: any) {
       setError(err.message);
     } finally {

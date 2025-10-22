@@ -32,8 +32,8 @@ export default function AuthCallbackPage() {
         .then((res) => res.json())
         .then((user) => {
           localStorage.setItem('user', JSON.stringify(user));
-          // Redirect to dashboard
-          setLocation('/dashboard');
+          // Redirect to account page
+          setLocation('/account');
         })
         .catch(() => {
           setLocation('/login?error=auth_failed');

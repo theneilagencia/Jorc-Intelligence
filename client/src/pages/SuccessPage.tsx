@@ -12,7 +12,7 @@ export default function SuccessPage() {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          setLocation('/dashboard');
+          setLocation('/account');
           return 0;
         }
         return prev - 1;
@@ -81,7 +81,7 @@ export default function SuccessPage() {
 
         {/* CTA Button */}
         <button
-          onClick={() => setLocation('/dashboard')}
+          onClick={() => setLocation('/account')}
           className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl"
         >
           Ir para o Dashboard

@@ -119,7 +119,7 @@ export default function AccountPage() {
             </div>
           </div>
           <button
-            onClick={() => setLocation('/dashboard')}
+            onClick={() => setLocation('/account')}
             className="text-gray-600 hover:text-gray-900"
           >
             Dashboard

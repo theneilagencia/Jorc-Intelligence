@@ -11,7 +11,7 @@ export default function SuccessPage() {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          setLocation('/dashboard');
+          setLocation('/account');
           return 0;
         }
         return prev - 1;
@@ -59,7 +59,7 @@ export default function SuccessPage() {
 
         <div className="space-y-3">
           <button
-            onClick={() => setLocation('/dashboard')}
+            onClick={() => setLocation('/account')}
             className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-all"
           >
             Ir para Dashboard
