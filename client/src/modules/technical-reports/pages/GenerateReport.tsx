@@ -92,12 +92,17 @@ export default function GenerateReport() {
             <div className="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center">
               <FileText className="h-6 w-6 text-blue-600" />
             </div>
-            <div>
-              <h2 className="text-xl font-semibold">Novo Relatório</h2>
-              <p className="text-sm text-gray-600">
-                Selecione o padrão e preencha os dados
-              </p>
-            </div>
+          <div className="flex-1">
+            <h2 className="text-xl font-semibold">Novo Relatório</h2>
+            <p className="text-sm text-gray-600">
+              Selecione o padrão e preencha os dados
+            </p>
+          </div>
+          <div className="bg-blue-50 px-4 py-2 rounded-lg">
+            <p className="text-sm text-blue-700">
+              ⏱️ Tempo estimado: <strong>5-10 minutos</strong>
+            </p>
+          </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -123,11 +128,15 @@ export default function GenerateReport() {
               <Input
                 id="title"
                 type="text"
-                placeholder="Ex: Relatório de Recursos Minerais - Projeto XYZ"
+                placeholder="Ex: Relatório Técnico - Projeto Carajás 2025"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
+                className="focus:ring-2 focus:ring-blue-500"
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Mínimo 5 caracteres. Seja específico para facilitar identificação.
+              </p>
             </div>
 
             <div>
@@ -135,7 +144,7 @@ export default function GenerateReport() {
               <Input
                 id="projectName"
                 type="text"
-                placeholder="Ex: Projeto Alpha"
+                placeholder="Ex: Projeto Carajás - Mina de Ferro"
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
               />
@@ -146,7 +155,7 @@ export default function GenerateReport() {
               <Input
                 id="location"
                 type="text"
-                placeholder="Ex: Minas Gerais, Brasil"
+                placeholder="Ex: Pará, Brasil | Coordenadas: -6.0°, -50.0°"
                 value={locationInput}
                 onChange={(e) => setLocationInput(e.target.value)}
               />
@@ -155,11 +164,23 @@ export default function GenerateReport() {
             <div className="pt-4">
               <Button 
                 type="submit" 
-                className="w-full"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 disabled={createReport.isPending}
               >
-                {createReport.isPending ? "Criando..." : "Iniciar Geração"}
+                {createReport.isPending ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Gerando relatório...
+                  </>
+                ) : (
+                  "Iniciar Geração →"
+                )}
               </Button>
+              {!createReport.isPending && (
+                <p className="text-xs text-center text-gray-500 mt-2">
+                  Após criar, você poderá editar, auditar e exportar
+                </p>
+              )}
             </div>
           </form>
         </Card>

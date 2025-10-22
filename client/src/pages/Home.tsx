@@ -78,25 +78,40 @@ export default function Home() {
           </p>
 
           <div className="flex flex-wrap gap-4 justify-center pt-6">
-            <Button size="lg" className="text-lg px-8" asChild>
-              <a href={getLoginUrl()}>Começar Agora</a>
+            <Button size="lg" className="text-lg px-8 shadow-lg shadow-blue-500/30" asChild>
+              <a href={getLoginUrl()}>Criar Conta Gratuita →</a>
             </Button>
             <Button size="lg" variant="outline" className="text-lg px-8" asChild>
-              <a href="/pricing">Ver Planos</a>
+              <a href="/pricing">Ver Planos e Preços</a>
             </Button>
           </div>
 
-          <div className="flex items-center justify-center gap-8 pt-8 text-sm text-slate-600">
+          {/* Prova Social */}
+          <div className="pt-12 border-t border-slate-200 mt-12">
+            <p className="text-sm text-slate-500 mb-6">Confiado por empresas de mineração em 3 continentes</p>
+            <div className="flex items-center justify-center gap-12 opacity-60">
+              <div className="text-2xl font-bold text-slate-700">500+</div>
+              <div className="text-sm text-slate-600">Relatórios<br/>Gerados</div>
+              <div className="h-8 w-px bg-slate-300"></div>
+              <div className="text-2xl font-bold text-slate-700">98%</div>
+              <div className="text-sm text-slate-600">Taxa de<br/>Conformidade</div>
+              <div className="h-8 w-px bg-slate-300"></div>
+              <div className="text-2xl font-bold text-slate-700">6</div>
+              <div className="text-sm text-slate-600">Padrões<br/>Suportados</div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-center gap-6 pt-6 text-sm text-slate-600">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-green-600" />
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
               <span>Auditável em tempo real</span>
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-green-600" />
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
               <span>Conformidade preditiva</span>
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-green-600" />
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
               <span>ESG operacional</span>
             </div>
           </div>

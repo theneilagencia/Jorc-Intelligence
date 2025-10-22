@@ -228,7 +228,7 @@ export default function PricingPage() {
               <button
                 onClick={() => handleSubscribe(plan.name)}
                 disabled={loading === plan.name}
-                className={`w-full py-3 rounded-lg font-semibold mb-6 transition-all ${
+                className={`w-full py-3 rounded-lg font-semibold mb-2 transition-all ${
                   plan.popular
                     ? 'bg-blue-600 text-white hover:bg-blue-700'
                     : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
@@ -236,6 +236,11 @@ export default function PricingPage() {
               >
                 {loading === plan.name ? 'Processando...' : plan.cta}
               </button>
+              {plan.price > 0 && (
+                <p className="text-xs text-gray-500 mb-4">
+                  ✓ Garantia de 30 dias | ✓ Cancele quando quiser
+                </p>
+              )}
 
               <ul className="space-y-3 text-left">
                 {plan.features.map((feature, idx) => (
@@ -281,6 +286,88 @@ export default function PricingPage() {
               </ul>
             </div>
           ))}
+        </div>
+
+        {/* Comparison Table */}
+        <div className="mt-24 max-w-6xl mx-auto">
+          <h2 className="text-3xl font-bold mb-8 text-center">
+            Comparação Detalhada de Planos
+          </h2>
+          
+          <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                <tr>
+                  <th className="px-6 py-4 text-left">Recursos</th>
+                  <th className="px-6 py-4 text-center">START</th>
+                  <th className="px-6 py-4 text-center bg-blue-700">PRO</th>
+                  <th className="px-6 py-4 text-center">ENTERPRISE</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                <tr className="hover:bg-gray-50">
+                  <td className="px-6 py-4 font-medium">Relatórios por mês</td>
+                  <td className="px-6 py-4 text-center">1</td>
+                  <td className="px-6 py-4 text-center bg-blue-50 font-semibold">5</td>
+                  <td className="px-6 py-4 text-center">15</td>
+                </tr>
+                <tr className="hover:bg-gray-50">
+                  <td className="px-6 py-4 font-medium">Projetos ativos</td>
+                  <td className="px-6 py-4 text-center">1</td>
+                  <td className="px-6 py-4 text-center bg-blue-50 font-semibold">3</td>
+                  <td className="px-6 py-4 text-center">Ilimitados</td>
+                </tr>
+                <tr className="hover:bg-gray-50">
+                  <td className="px-6 py-4 font-medium">Padrões suportados</td>
+                  <td className="px-6 py-4 text-center">JORC, CBRR</td>
+                  <td className="px-6 py-4 text-center bg-blue-50 font-semibold">Todos (6)</td>
+                  <td className="px-6 py-4 text-center">Todos (6)</td>
+                </tr>
+                <tr className="hover:bg-gray-50">
+                  <td className="px-6 py-4 font-medium">Auditoria KRCI</td>
+                  <td className="px-6 py-4 text-center">Básica</td>
+                  <td className="px-6 py-4 text-center bg-blue-50 font-semibold">Completa (22 regras)</td>
+                  <td className="px-6 py-4 text-center">Completa (22 regras)</td>
+                </tr>
+                <tr className="hover:bg-gray-50">
+                  <td className="px-6 py-4 font-medium">Pré-certificação</td>
+                  <td className="px-6 py-4 text-center text-gray-400">✗</td>
+                  <td className="px-6 py-4 text-center bg-blue-50 text-green-600">✓ ASX, TSX, JSE, ANM</td>
+                  <td className="px-6 py-4 text-center text-green-600">✓ Todos + CRIRSCO</td>
+                </tr>
+                <tr className="hover:bg-gray-50">
+                  <td className="px-6 py-4 font-medium">Conversão de padrões</td>
+                  <td className="px-6 py-4 text-center text-gray-400">✗</td>
+                  <td className="px-6 py-4 text-center bg-blue-50 text-green-600">✓</td>
+                  <td className="px-6 py-4 text-center text-green-600">✓</td>
+                </tr>
+                <tr className="hover:bg-gray-50">
+                  <td className="px-6 py-4 font-medium">Exportação</td>
+                  <td className="px-6 py-4 text-center">PDF</td>
+                  <td className="px-6 py-4 text-center bg-blue-50 font-semibold">PDF, DOCX, XLSX</td>
+                  <td className="px-6 py-4 text-center">PDF, DOCX, XLSX</td>
+                </tr>
+                <tr className="hover:bg-gray-50">
+                  <td className="px-6 py-4 font-medium">API Access</td>
+                  <td className="px-6 py-4 text-center text-gray-400">✗</td>
+                  <td className="px-6 py-4 text-center bg-blue-50 text-gray-400">✗</td>
+                  <td className="px-6 py-4 text-center text-green-600">✓ Completo</td>
+                </tr>
+                <tr className="hover:bg-gray-50">
+                  <td className="px-6 py-4 font-medium">White-label</td>
+                  <td className="px-6 py-4 text-center text-gray-400">✗</td>
+                  <td className="px-6 py-4 text-center bg-blue-50 text-gray-400">✗</td>
+                  <td className="px-6 py-4 text-center text-green-600">✓</td>
+                </tr>
+                <tr className="hover:bg-gray-50">
+                  <td className="px-6 py-4 font-medium">Suporte</td>
+                  <td className="px-6 py-4 text-center">Email</td>
+                  <td className="px-6 py-4 text-center bg-blue-50 font-semibold">Prioritário</td>
+                  <td className="px-6 py-4 text-center">Dedicado 24/7</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* FAQ Section */}
