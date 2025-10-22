@@ -66,7 +66,7 @@ router.post('/init-db', async (req, res) => {
 
     // Step 2: Create users table
     console.log('[Init DB] Creating users table...');
-    await db.execute(sql`
+    await client.unsafe(`
       CREATE TABLE IF NOT EXISTS users (
         id VARCHAR(64) PRIMARY KEY,
         name TEXT,
@@ -84,7 +84,7 @@ router.post('/init-db', async (req, res) => {
 
     // Step 3: Create licenses table
     console.log('[Init DB] Creating licenses table...');
-    await db.execute(sql`
+    await client.unsafe(`
       CREATE TABLE IF NOT EXISTS licenses (
         id VARCHAR(64) PRIMARY KEY,
         "userId" VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -105,6 +105,9 @@ router.post('/init-db', async (req, res) => {
         "updatedAt" TIMESTAMP DEFAULT NOW()
       )
     `);
+    
+    // Close the postgres client to avoid connection conflicts
+    await client.end();
 
     // Step 4: Seed development users
     console.log('[Init DB] Seeding development users...');
