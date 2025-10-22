@@ -63,11 +63,11 @@ export default function Home() {
             Infraestrutura Full-Stack para Governança Minerária
           </div>
           
-          <h1 className="text-6xl font-bold tracking-tight leading-tight">
-            Transforme Compliance em
+          <h1 className="text-6xl font-extrabold tracking-tight leading-tight">
+            <strong>Transforme Compliance em</strong>
             <br />
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Valor Estratégico
+              <strong>Valor Estratégico</strong>
             </span>
           </h1>
           
