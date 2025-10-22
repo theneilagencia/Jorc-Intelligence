@@ -26,7 +26,12 @@ export default function AccountPage() {
 
   const fetchLicenseStatus = async () => {
     try {
-      const response = await fetch('/api/license/status');
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch('/api/license/status', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       
       if (!response.ok) {
         throw new Error('Failed to fetch license status');

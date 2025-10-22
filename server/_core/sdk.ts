@@ -257,7 +257,35 @@ class SDKServer {
   }
 
   async authenticateRequest(req: Request): Promise<User> {
-    // Regular authentication flow
+    // Try JWT Bearer token first (for email/password auth)
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.substring(7);
+        const authService = await import('../modules/auth/service');
+        const decoded = authService.verifyToken(token);
+        
+        const signedInAt = new Date();
+        let user = await db.getUser(decoded.userId);
+        
+        if (!user) {
+          throw ForbiddenError("User not found");
+        }
+        
+        await db.upsertUser({
+          id: user.id,
+          tenantId: user.tenantId,
+          lastSignedIn: signedInAt,
+        });
+        
+        return user;
+      } catch (error) {
+        console.error('[Auth] JWT verification failed:', error);
+        throw ForbiddenError("Invalid access token");
+      }
+    }
+    
+    // Fallback to cookie-based authentication (for OAuth)
     const cookies = this.parseCookies(req.headers.cookie);
     const sessionCookie = cookies.get(COOKIE_NAME);
     const session = await this.verifySession(sessionCookie);
