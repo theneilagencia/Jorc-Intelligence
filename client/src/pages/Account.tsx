@@ -115,7 +115,7 @@ export default function AccountPage() {
             </div>
             <div>
               <div className="font-bold text-lg">Minha Conta</div>
-              <div className="text-xs text-gray-500">JORC Intelligence Engine™</div>
+              <div className="text-xs text-gray-500">QIVO Mining</div>
             </div>
           </div>
           <button

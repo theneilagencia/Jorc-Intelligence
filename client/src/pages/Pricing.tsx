@@ -145,7 +145,7 @@ export default function PricingPage() {
               JI
             </div>
             <div>
-              <div className="font-bold text-lg">JORC Intelligence Engine™</div>
+              <div className="font-bold text-lg">QIVO Mining</div>
               <div className="text-xs text-gray-500">ComplianceCore Mining™</div>
             </div>
           </div>
@@ -336,7 +336,7 @@ export default function PricingPage() {
       {/* Footer */}
       <footer className="border-t bg-white mt-24 py-8">
         <div className="container mx-auto px-4 text-center text-gray-600">
-          <p>© 2025 JORC Intelligence Engine™ - ComplianceCore Mining™</p>
+          <p>© 2025 QIVO Mining - ComplianceCore Mining™</p>
           <p className="text-sm mt-2">
             Todos os direitos reservados. Plataforma Multi-Tenant para Mineração.
           </p>
