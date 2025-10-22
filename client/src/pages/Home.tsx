@@ -35,7 +35,7 @@ export default function Home() {
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={APP_LOGO} alt="QIVO Mining" className="h-10 w-10 rounded-lg" />
+            <img src="/qivo-logo.png" alt="QIVO Mining" className="h-10 w-10 rounded-lg" />
             <div>
               <h1 className="text-xl font-bold text-slate-900">QIVO Mining</h1>
               <p className="text-xs text-slate-600">Infraestrutura de Governança Minerária Digital</p>
@@ -86,22 +86,7 @@ export default function Home() {
             </Button>
           </div>
 
-          {/* Prova Social */}
-          <div className="pt-12 border-t border-slate-200 mt-12">
-            <p className="text-sm text-slate-500 mb-6">Confiado por empresas de mineração em 3 continentes</p>
-            <div className="flex items-center justify-center gap-12 opacity-60">
-              <div className="text-2xl font-bold text-slate-700">500+</div>
-              <div className="text-sm text-slate-600">Relatórios<br/>Gerados</div>
-              <div className="h-8 w-px bg-slate-300"></div>
-              <div className="text-2xl font-bold text-slate-700">98%</div>
-              <div className="text-sm text-slate-600">Taxa de<br/>Conformidade</div>
-              <div className="h-8 w-px bg-slate-300"></div>
-              <div className="text-2xl font-bold text-slate-700">6</div>
-              <div className="text-sm text-slate-600">Padrões<br/>Suportados</div>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-center gap-6 pt-6 text-sm text-slate-600">
+          <div className="flex items-center justify-center gap-6 pt-8 text-sm text-slate-600">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-green-600" />
               <span>Auditável em tempo real</span>
@@ -347,7 +332,7 @@ export default function Home() {
           <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <img src={APP_LOGO} alt="QIVO Mining" className="h-8 w-8 rounded-lg" />
+                <img src="/qivo-logo.png" alt="QIVO Mining" className="h-8 w-8 rounded-lg" />
                 <span className="font-bold text-lg">QIVO Mining</span>
               </div>
               <p className="text-sm text-slate-600">

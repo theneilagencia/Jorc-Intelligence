@@ -141,12 +141,10 @@ export default function PricingPage() {
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
-              JI
-            </div>
+            <img src="/qivo-logo.png" alt="QIVO Mining" className="w-10 h-10 rounded-lg" />
             <div>
               <div className="font-bold text-lg">QIVO Mining</div>
-              <div className="text-xs text-gray-500">ComplianceCore Mining™</div>
+              <div className="text-xs text-gray-500">Infraestrutura de Governança Minerária Digital</div>
             </div>
           </div>
           <button
@@ -423,9 +421,9 @@ export default function PricingPage() {
       {/* Footer */}
       <footer className="border-t bg-white mt-24 py-8">
         <div className="container mx-auto px-4 text-center text-gray-600">
-          <p>© 2025 QIVO Mining - ComplianceCore Mining™</p>
+          <p>© 2025 QIVO Mining</p>
           <p className="text-sm mt-2">
-            Todos os direitos reservados. Plataforma Multi-Tenant para Mineração.
+            Infraestrutura de Governança Minerária Digital
           </p>
         </div>
       </footer>
