@@ -6,8 +6,13 @@ export const APP_LOGO =
   import.meta.env.VITE_APP_LOGO ||
   "https://placehold.co/128x128/E1E7EF/1F2937?text=App";
 
-// Generate login URL at runtime so redirect URI reflects the current origin.
+// Generate login URL - using internal login page instead of external OAuth portal
 export const getLoginUrl = () => {
+  return "/login";
+};
+
+// Legacy OAuth portal URL generator (not currently used)
+export const getOAuthPortalUrl = () => {
   const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL;
   const appId = import.meta.env.VITE_APP_ID;
   const redirectUri = `${window.location.origin}/api/oauth/callback`;
