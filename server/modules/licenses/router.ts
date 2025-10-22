@@ -109,7 +109,7 @@ router.get('/plans', async (req: Request, res: Response) => {
       reportsLimit: limits.reportsLimit,
       projectsLimit: limits.projectsLimit === -1 ? 'unlimited' : limits.projectsLimit,
       priceMonthly: limits.price,
-      priceAnnual: limits.priceAnnual || null,
+      priceAnnual: 'priceAnnual' in limits ? limits.priceAnnual : null,
     }));
 
     res.json({ plans });

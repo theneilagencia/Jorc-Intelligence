@@ -167,7 +167,6 @@ router.get('/me', async (req: Request, res: Response) => {
       id: user.id,
       email: user.email,
       name: user.name,
-      avatar: user.avatar,
     });
   } catch (error: any) {
     console.error('[Auth] Get user error:', error);

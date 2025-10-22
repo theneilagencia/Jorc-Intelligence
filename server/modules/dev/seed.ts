@@ -15,6 +15,10 @@ import { eq } from 'drizzle-orm';
 export async function seedAdminUser() {
   const db = await getDb();
   
+  if (!db) {
+    throw new Error('[Dev Seed] Database not available');
+  }
+  
   const adminEmail = 'admin@jorc.com';
   const adminPassword = 'Admin@2025';
   
@@ -48,21 +52,19 @@ export async function seedAdminUser() {
   await db.insert(licenses).values({
     id: createId(),
     userId: adminId,
+    tenantId: 'default',
     plan: 'ENTERPRISE',
     status: 'active',
     billingPeriod: 'annual',
-    reportsPerMonth: 15,
+    reportsLimit: 15,
     projectsLimit: 999999, // Unlimited
     reportsUsed: 0,
-    projectsActive: 0,
     stripeCustomerId: null,
     stripeSubscriptionId: null,
     stripePriceId: null,
-    startDate: new Date(),
-    expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
+    validFrom: new Date(),
+    validUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
     lastResetAt: new Date(),
-    createdAt: new Date(),
-    updatedAt: new Date(),
   });
   
   console.log('[Dev Seed] ✅ Admin user created');
@@ -78,6 +80,10 @@ export async function seedAdminUser() {
  */
 export async function seedTestUsers() {
   const db = await getDb();
+  
+  if (!db) {
+    throw new Error('[Dev Seed] Database not available');
+  }
   
   const testUsers = [
     {
@@ -133,21 +139,19 @@ export async function seedTestUsers() {
     await db.insert(licenses).values({
       id: createId(),
       userId,
+      tenantId: 'default',
       plan: testUser.plan,
       status: 'active',
       billingPeriod: 'monthly',
-      reportsPerMonth: config.reports,
+      reportsLimit: config.reports,
       projectsLimit: config.projects,
       reportsUsed: 0,
-      projectsActive: 0,
       stripeCustomerId: null,
       stripeSubscriptionId: null,
       stripePriceId: null,
-      startDate: new Date(),
-      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+      validFrom: new Date(),
+      validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
       lastResetAt: new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
     });
     
     console.log(`[Dev Seed] ✅ ${testUser.email} created (${testUser.plan})`);

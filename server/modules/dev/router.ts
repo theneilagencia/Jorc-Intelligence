@@ -5,7 +5,7 @@
 
 import { Router, Request, Response } from 'express';
 import { runDevSeeds } from './seed';
-import { loginUser, generateTokens } from '../auth/service';
+import { loginUser } from '../auth/service';
 import { getUserLicense, upgradeLicense } from '../licenses/service';
 import type { Plan } from '../licenses/service';
 
@@ -91,7 +91,10 @@ router.post('/simulate-payment', async (req: Request, res: Response) => {
     }
     
     // Simulate successful payment by upgrading license
-    const license = await upgradeLicense(userId, plan, billingPeriod);
+    const license = await upgradeLicense(userId, plan, billingPeriod, {
+      subscriptionId: 'sim_' + Date.now(),
+      priceId: 'price_sim_' + plan,
+    });
     
     res.json({
       success: true,
@@ -100,9 +103,9 @@ router.post('/simulate-payment', async (req: Request, res: Response) => {
         plan: license.plan,
         status: license.status,
         billingPeriod: license.billingPeriod,
-        reportsPerMonth: license.reportsPerMonth,
+        reportsLimit: license.reportsLimit,
         projectsLimit: license.projectsLimit,
-        expiresAt: license.expiresAt,
+        validUntil: license.validUntil,
       },
     });
   } catch (error: any) {
@@ -134,11 +137,10 @@ router.get('/user/:userId', async (req: Request, res: Response) => {
         plan: license.plan,
         status: license.status,
         billingPeriod: license.billingPeriod,
-        reportsPerMonth: license.reportsPerMonth,
+        reportsLimit: license.reportsLimit,
         reportsUsed: license.reportsUsed,
         projectsLimit: license.projectsLimit,
-        projectsActive: license.projectsActive,
-        expiresAt: license.expiresAt,
+        validUntil: license.validUntil,
         lastResetAt: license.lastResetAt,
       },
     });

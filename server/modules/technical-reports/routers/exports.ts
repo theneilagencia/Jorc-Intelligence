@@ -15,7 +15,7 @@ export const exportsRouter = router({
   run: protectedProcedure
     .input(z.object({
       reportId: z.string(),
-      toStandard: z.enum(["JORC_2012", "NI_43_101", "PERC", "SAMREC"]),
+      toStandard: z.enum(["JORC_2012", "NI_43_101", "PERC", "SAMREC", "CBRR"]),
       format: z.enum(["PDF", "DOCX", "XLSX"]),
     }))
     .mutation(async ({ input, ctx }) => {

@@ -35,7 +35,6 @@ export interface AuthTokens {
     id: string;
     email: string;
     name: string | null;
-    avatar: string | null;
   };
 }
 
@@ -123,10 +122,7 @@ export async function registerUser(data: RegisterData): Promise<AuthTokens> {
     name: data.name || null,
     passwordHash,
     googleId: null,
-    avatar: null,
     refreshToken: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
   };
 
   await db.insert(users).values(userData);
@@ -141,7 +137,7 @@ export async function registerUser(data: RegisterData): Promise<AuthTokens> {
   // Store refresh token
   await db
     .update(users)
-    .set({ refreshToken, updatedAt: new Date() })
+    .set({ refreshToken })
     .where(eq(users.id, userId));
 
   return {
@@ -151,7 +147,6 @@ export async function registerUser(data: RegisterData): Promise<AuthTokens> {
       id: userId,
       email: data.email,
       name: data.name || null,
-      avatar: null,
     },
   };
 }
@@ -193,7 +188,7 @@ export async function loginUser(credentials: LoginCredentials): Promise<AuthToke
   // Store refresh token
   await db
     .update(users)
-    .set({ refreshToken, updatedAt: new Date() })
+    .set({ refreshToken })
     .where(eq(users.id, user.id));
 
   return {
@@ -203,7 +198,6 @@ export async function loginUser(credentials: LoginCredentials): Promise<AuthToke
       id: user.id,
       email: user.email!,
       name: user.name,
-      avatar: user.avatar,
     },
   };
 }
@@ -239,7 +233,7 @@ export async function loginWithGoogle(googleProfile: {
     if (user) {
       await db
         .update(users)
-        .set({ googleId: googleProfile.id, updatedAt: new Date() })
+        .set({ googleId: googleProfile.id })
         .where(eq(users.id, user.id));
     }
   }
@@ -255,11 +249,8 @@ export async function loginWithGoogle(googleProfile: {
       email: googleProfile.email,
       name: googleProfile.name,
       googleId: googleProfile.id,
-      avatar: googleProfile.picture || null,
       passwordHash: null, // OAuth users don't have password
       refreshToken: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
     };
 
     await db.insert(users).values(userData);
@@ -277,7 +268,7 @@ export async function loginWithGoogle(googleProfile: {
   // Store refresh token
   await db
     .update(users)
-    .set({ refreshToken, updatedAt: new Date() })
+    .set({ refreshToken })
     .where(eq(users.id, user.id));
 
   return {
@@ -287,7 +278,6 @@ export async function loginWithGoogle(googleProfile: {
       id: user.id,
       email: user.email!,
       name: user.name,
-      avatar: user.avatar,
     },
   };
 }
@@ -332,7 +322,7 @@ export async function logoutUser(userId: string): Promise<void> {
 
   await db
     .update(users)
-    .set({ refreshToken: null, updatedAt: new Date() })
+    .set({ refreshToken: null })
     .where(eq(users.id, userId));
 }
 

@@ -22,6 +22,11 @@ interface NormalizedData {
   economic_assumptions: any;
   qa_qc?: string;
   geology?: string;
+  environmental?: {
+    license?: string;
+    licenseNumber?: string;
+    issuingAgency?: string;
+  };
 }
 
 interface ComplianceResult {
