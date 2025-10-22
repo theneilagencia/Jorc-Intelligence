@@ -120,6 +120,28 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Video Section */}
+      <section className="container mx-auto px-4 py-20">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center space-y-4 mb-12">
+            <h2 className="text-4xl font-bold">Veja a QIVO Mining em Ação</h2>
+            <p className="text-lg text-slate-600">
+              Conheça como transformamos compliance em valor estratégico
+            </p>
+          </div>
+          <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+            <iframe
+              className="absolute top-0 left-0 w-full h-full rounded-2xl shadow-2xl"
+              src="https://www.youtube.com/embed/QKLnZbl5Z-E"
+              title="QIVO Mining - Infraestrutura de Governança Minerária Digital"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              loading="lazy"
+            ></iframe>
+          </div>
+        </div>
+      </section>
+
       {/* Value Proposition */}
       <section className="bg-gradient-to-br from-slate-900 to-slate-800 text-white py-20">
         <div className="container mx-auto px-4">
