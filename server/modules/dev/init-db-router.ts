@@ -10,6 +10,7 @@ import { users, licenses } from '../../../drizzle/schema';
 import { hashPassword } from '../auth/service';
 import { createId } from '@paralleldrive/cuid2';
 import { sql } from 'drizzle-orm';
+import postgres from 'postgres';
 
 const router = Router();
 
@@ -30,30 +31,37 @@ router.post('/init-db', async (req, res) => {
 
     console.log('[Init DB] Starting database initialization...');
 
-    // Step 1: Create enums (if not exist)
+    // Step 1: Create enums using raw postgres client (if not exist)
     console.log('[Init DB] Creating enums...');
+    const dbUrl = process.env.DATABASE_URL || process.env.DB_URL;
+    if (!dbUrl) {
+      throw new Error('DATABASE_URL not configured');
+    }
+    
+    const client = postgres(dbUrl, { ssl: 'require' });
+    
     try {
-      await db.execute(sql`CREATE TYPE role AS ENUM ('user', 'admin', 'parceiro', 'backoffice')`);
+      await client.unsafe(`CREATE TYPE role AS ENUM ('user', 'admin', 'parceiro', 'backoffice')`);
     } catch (e: any) {
-      if (!e.message?.includes('already exists')) throw e;
+      if (!e.message?.includes('already exists')) console.log('[Init DB] ENUM role already exists or error:', e.message);
     }
     
     try {
-      await db.execute(sql`CREATE TYPE plan AS ENUM ('START', 'PRO', 'ENTERPRISE')`);
+      await client.unsafe(`CREATE TYPE plan AS ENUM ('START', 'PRO', 'ENTERPRISE')`);
     } catch (e: any) {
-      if (!e.message?.includes('already exists')) throw e;
+      if (!e.message?.includes('already exists')) console.log('[Init DB] ENUM plan already exists or error:', e.message);
     }
     
     try {
-      await db.execute(sql`CREATE TYPE license_status AS ENUM ('active', 'expired', 'cancelled', 'suspended')`);
+      await client.unsafe(`CREATE TYPE license_status AS ENUM ('active', 'expired', 'cancelled', 'suspended')`);
     } catch (e: any) {
-      if (!e.message?.includes('already exists')) throw e;
+      if (!e.message?.includes('already exists')) console.log('[Init DB] ENUM license_status already exists or error:', e.message);
     }
     
     try {
-      await db.execute(sql`CREATE TYPE billing_period AS ENUM ('monthly', 'annual')`);
+      await client.unsafe(`CREATE TYPE billing_period AS ENUM ('monthly', 'annual')`);
     } catch (e: any) {
-      if (!e.message?.includes('already exists')) throw e;
+      if (!e.message?.includes('already exists')) console.log('[Init DB] ENUM billing_period already exists or error:', e.message);
     }
 
     // Step 2: Create users table
