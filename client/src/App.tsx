@@ -13,10 +13,22 @@ import PreCertification from "./modules/technical-reports/pages/PreCertification
 import ExportStandards from "./modules/technical-reports/pages/ExportStandards";
 import ReviewReport from "./modules/technical-reports/pages/ReviewReport";
 
+// Pricing and Account Pages
+import Pricing from "./pages/Pricing";
+import Success from "./pages/Success";
+import Cancel from "./pages/Cancel";
+import Account from "./pages/Account";
+
 function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      
+      {/* Pricing and Account Routes */}
+      <Route path={"/pricing"} component={Pricing} />
+      <Route path={"/success"} component={Success} />
+      <Route path={"/cancel"} component={Cancel} />
+      <Route path={"/account"} component={Account} />
       
       {/* Technical Reports Routes */}
       <Route path={"/reports/generate"} component={GenerateReport} />
