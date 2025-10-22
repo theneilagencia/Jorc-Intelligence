@@ -11,6 +11,8 @@ interface NormalizedReport {
     projectName?: string;
     effectiveDate?: string;
     standard?: string;
+    anmProcess?: string; // Número do processo ANM (CBRR)
+    dnpmCode?: string; // Código DNPM antigo (CBRR)
   };
   sections?: Array<{
     title: string;
@@ -26,15 +28,24 @@ interface NormalizedReport {
     name?: string;
     qualification?: string;
     organization?: string;
+    creaNumber?: string; // Registro CREA (CBRR)
+    cpf?: string; // CPF da Pessoa Qualificada (CBRR)
   }>;
   economicAssumptions?: {
     capex?: number;
     opex?: number;
     recoveryRate?: number;
+    royalties?: number; // CFEM (CBRR)
+    cfemRate?: number; // Taxa CFEM (CBRR)
   };
   qaQc?: {
     samplingMethod?: string;
     qualityControl?: string;
+  };
+  environmental?: {
+    license?: string; // Tipo de licença ambiental (LP, LI, LO) (CBRR)
+    licenseNumber?: string; // Número da licença (CBRR)
+    issuingAgency?: string; // Órgão emissor (IBAMA, estadual) (CBRR)
   };
 }
 
@@ -298,6 +309,137 @@ const AUDIT_RULES: AuditRule[] = [
     weight: 2,
     severity: "low",
     check: (r) => !r.metadata?.title || r.metadata.title.length < 20,
+  },
+
+  // ========================================
+  // REGRAS ESPECÍFICAS CBRR/ANM (BRASIL)
+  // ========================================
+  
+  // CRITICAL RULES - CBRR/ANM
+  {
+    code: "KRCI-CBRR-001",
+    section: "Pessoa Qualificada (PQ)",
+    message: "CBRR: Registro CREA da Pessoa Qualificada não informado (obrigatório pela ANM)",
+    weight: 20,
+    severity: "critical",
+    check: (r) => {
+      if (r.metadata?.standard !== 'CBRR') return false; // Só aplica para CBRR
+      if (!r.competentPersons || r.competentPersons.length === 0) return true;
+      return !r.competentPersons[0]?.creaNumber;
+    },
+  },
+  {
+    code: "KRCI-CBRR-002",
+    section: "Conformidade ANM",
+    message: "CBRR: Número do processo ANM não informado (obrigatório para registro)",
+    weight: 18,
+    severity: "critical",
+    check: (r) => {
+      if (r.metadata?.standard !== 'CBRR') return false;
+      return !r.metadata?.anmProcess;
+    },
+  },
+  {
+    code: "KRCI-CBRR-003",
+    section: "Licenciamento Ambiental",
+    message: "CBRR: Licença ambiental não informada (obrigatória pela legislação brasileira)",
+    weight: 16,
+    severity: "critical",
+    check: (r) => {
+      if (r.metadata?.standard !== 'CBRR') return false;
+      return !r.environmental?.license || !r.environmental?.licenseNumber;
+    },
+  },
+
+  // HIGH SEVERITY RULES - CBRR/ANM
+  {
+    code: "KRCI-CBRR-004",
+    section: "Pessoa Qualificada (PQ)",
+    message: "CBRR: CPF da Pessoa Qualificada não informado",
+    weight: 12,
+    severity: "high",
+    check: (r) => {
+      if (r.metadata?.standard !== 'CBRR') return false;
+      if (!r.competentPersons || r.competentPersons.length === 0) return true;
+      return !r.competentPersons[0]?.cpf;
+    },
+  },
+  {
+    code: "KRCI-CBRR-005",
+    section: "Licenciamento Ambiental",
+    message: "CBRR: Órgão emissor da licença ambiental não especificado (IBAMA, órgão estadual)",
+    weight: 10,
+    severity: "high",
+    check: (r) => {
+      if (r.metadata?.standard !== 'CBRR') return false;
+      return !r.environmental?.issuingAgency;
+    },
+  },
+  {
+    code: "KRCI-CBRR-006",
+    section: "Premissas Econômicas",
+    message: "CBRR: Taxa CFEM (Compensação Financeira pela Exploração Mineral) não especificada",
+    weight: 10,
+    severity: "high",
+    check: (r) => {
+      if (r.metadata?.standard !== 'CBRR') return false;
+      return !r.economicAssumptions?.royalties && !r.economicAssumptions?.cfemRate;
+    },
+  },
+
+  // MEDIUM SEVERITY RULES - CBRR/ANM
+  {
+    code: "KRCI-CBRR-007",
+    section: "Classificação de Recursos",
+    message: "CBRR: Categorias devem usar nomenclatura brasileira (Medido, Indicado, Inferido)",
+    weight: 8,
+    severity: "medium",
+    check: (r) => {
+      if (r.metadata?.standard !== 'CBRR') return false;
+      if (!r.resourceEstimates) return true;
+      return r.resourceEstimates.some(re => {
+        const cat = (re.category || '').toLowerCase();
+        return cat.includes('measured') || cat.includes('indicated') || cat.includes('inferred');
+      });
+    },
+  },
+  {
+    code: "KRCI-CBRR-008",
+    section: "Conformidade ANM",
+    message: "CBRR: Código DNPM (antigo) não informado, se aplicável",
+    weight: 5,
+    severity: "medium",
+    check: (r) => {
+      if (r.metadata?.standard !== 'CBRR') return false;
+      // Apenas warning se não informado
+      return false; // Não obrigatório, apenas recomendado
+    },
+  },
+
+  // LOW SEVERITY RULES - CBRR/ANM
+  {
+    code: "KRCI-CBRR-009",
+    section: "Seções do Relatório",
+    message: "CBRR: Seção 'Localização' ausente (recomendada pela NRM-01)",
+    weight: 4,
+    severity: "low",
+    check: (r) => {
+      if (r.metadata?.standard !== 'CBRR') return false;
+      if (!r.sections) return true;
+      return !r.sections.some(s => s.title.toLowerCase().includes("localização") || s.title.toLowerCase().includes("location"));
+    },
+  },
+  {
+    code: "KRCI-CBRR-010",
+    section: "Seções do Relatório",
+    message: "CBRR: Seção 'Conclusões' ausente (recomendada pela NRM-01)",
+    weight: 3,
+    severity: "low",
+    check: (r) => {
+      if (r.metadata?.standard !== 'CBRR') return false;
+      if (!r.sections) return true;
+      return !r.sections.some(s => s.title.toLowerCase().includes("conclusões") || s.title.toLowerCase().includes("conclusions"));
+    },
   },
 ];
 

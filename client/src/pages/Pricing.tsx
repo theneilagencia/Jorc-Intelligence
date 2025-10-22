@@ -24,7 +24,7 @@ const plans: Plan[] = [
     features: [
       { text: '1 relatório por mês', included: true },
       { text: '1 projeto ativo', included: true },
-      { text: 'Geração de relatórios JORC', included: true },
+      { text: 'Geração de relatórios JORC/CBRR', included: true },
       { text: 'Exportação PDF', included: true },
       { text: 'Auditoria KRCI básica', included: true },
       { text: 'Suporte por email', included: true },
@@ -42,7 +42,7 @@ const plans: Plan[] = [
     features: [
       { text: '5 relatórios por mês', included: true },
       { text: 'Até 3 projetos ativos', included: true },
-      { text: 'Todos os padrões internacionais', included: true },
+      { text: 'Todos os padrões (JORC, NI43, CBRR, PERC, SAMREC)', included: true },
       { text: 'Auditoria KRCI completa (20 regras)', included: true },
       { text: 'Pré-certificação ASX, TSX, JSE', included: true },
       { text: 'Conversão entre padrões', included: true },

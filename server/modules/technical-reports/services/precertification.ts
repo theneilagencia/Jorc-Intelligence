@@ -3,7 +3,7 @@
  * Validates compliance with international regulators (ASX, TSX, JSE, CRIRSCO)
  */
 
-type Regulator = 'ASX' | 'TSX' | 'JSE' | 'CRIRSCO';
+type Regulator = 'ASX' | 'TSX' | 'JSE' | 'CRIRSCO' | 'ANM';
 
 interface ChecklistItem {
   id: string;
@@ -364,6 +364,89 @@ function getCRIRSCOChecklist(data: NormalizedData): ChecklistItem[] {
 }
 
 /**
+ * ANM Checklist (Agência Nacional de Mineração - Brasil)
+ * Baseado em CBRR e NRM-01
+ */
+function getANMChecklist(data: NormalizedData): ChecklistItem[] {
+  return [
+    {
+      id: 'ANM-001',
+      requirement: 'Pessoa Qualificada (PQ) declarada com registro CREA',
+      category: 'Pessoa Qualificada',
+      mandatory: true,
+      status: data.competent_persons && data.competent_persons.length > 0 && 
+              data.competent_persons[0].creaNumber ? 'pass' : 'fail',
+    },
+    {
+      id: 'ANM-002',
+      requirement: 'CPF da Pessoa Qualificada informado',
+      category: 'Pessoa Qualificada',
+      mandatory: true,
+      status: data.competent_persons?.[0]?.cpf ? 'pass' : 'fail',
+    },
+    {
+      id: 'ANM-003',
+      requirement: 'Número do processo ANM informado',
+      category: 'Conformidade Regulatória',
+      mandatory: true,
+      status: data.metadata?.anmProcess ? 'pass' : 'fail',
+    },
+    {
+      id: 'ANM-004',
+      requirement: 'Licença ambiental válida (LP, LI ou LO)',
+      category: 'Licenciamento Ambiental',
+      mandatory: true,
+      status: data.environmental?.license && data.environmental?.licenseNumber ? 'pass' : 'fail',
+    },
+    {
+      id: 'ANM-005',
+      requirement: 'Órgão emissor da licença ambiental especificado',
+      category: 'Licenciamento Ambiental',
+      mandatory: true,
+      status: data.environmental?.issuingAgency ? 'pass' : 'fail',
+    },
+    {
+      id: 'ANM-006',
+      requirement: 'Classificação de recursos conforme CBRR (Medido, Indicado, Inferido)',
+      category: 'Recursos Minerais',
+      mandatory: true,
+      status: data.resource_estimates && data.resource_estimates.length > 0 ? 'pass' : 'fail',
+    },
+    {
+      id: 'ANM-007',
+      requirement: 'Taxa CFEM (Compensação Financeira) especificada',
+      category: 'Premissas Econômicas',
+      mandatory: true,
+      status: data.economic_assumptions?.royalties || data.economic_assumptions?.cfemRate ? 'pass' : 'fail',
+    },
+    {
+      id: 'ANM-008',
+      requirement: 'Metodologia de estimação de recursos documentada',
+      category: 'Recursos Minerais',
+      mandatory: true,
+      status: data.sections?.some(s => 
+        s.title?.toLowerCase().includes('metodologia') || 
+        s.title?.toLowerCase().includes('methodology')
+      ) ? 'pass' : 'pending',
+    },
+    {
+      id: 'ANM-009',
+      requirement: 'Procedimentos de QA/QC documentados',
+      category: 'Controle de Qualidade',
+      mandatory: true,
+      status: data.qa_qc ? 'pass' : 'fail',
+    },
+    {
+      id: 'ANM-010',
+      requirement: 'Interpretação geológica documentada',
+      category: 'Geologia',
+      mandatory: true,
+      status: data.geology ? 'pass' : 'pending',
+    },
+  ];
+}
+
+/**
  * Run pre-certification check
  */
 export function runPreCertification(
@@ -384,6 +467,9 @@ export function runPreCertification(
       break;
     case 'CRIRSCO':
       checklist = getCRIRSCOChecklist(normalizedData);
+      break;
+    case 'ANM':
+      checklist = getANMChecklist(normalizedData);
       break;
     default:
       throw new Error(`Unknown regulator: ${regulator}`);

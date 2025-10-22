@@ -6,7 +6,7 @@ import { Download, FileText, FileSpreadsheet, FileCode, Loader2, CheckCircle2, C
 
 export default function ExportStandards() {
   const [selectedReportId, setSelectedReportId] = useState('');
-  const [toStandard, setToStandard] = useState<'JORC_2012' | 'NI_43_101' | 'PERC' | 'SAMREC'>('JORC_2012');
+  const [toStandard, setToStandard] = useState<'JORC_2012' | 'NI_43_101' | 'PERC' | 'SAMREC' | 'CBRR'>('JORC_2012');
   const [format, setFormat] = useState<'PDF' | 'DOCX' | 'XLSX'>('PDF');
 
   // Queries
@@ -43,6 +43,7 @@ export default function ExportStandards() {
     { id: 'NI_43_101', name: 'NI 43-101', description: 'Canadian Standard', icon: '🇨🇦' },
     { id: 'PERC', name: 'PERC', description: 'Pan-European Code', icon: '🇪🇺' },
     { id: 'SAMREC', name: 'SAMREC', description: 'South African Code', icon: '🇿🇦' },
+    { id: 'CBRR', name: 'CBRR', description: 'Brazilian Standard', icon: '🇧🇷' },
   ];
 
   const formats = [

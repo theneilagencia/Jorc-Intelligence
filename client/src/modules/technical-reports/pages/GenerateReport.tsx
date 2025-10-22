@@ -108,11 +108,12 @@ export default function GenerateReport() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="JORC_2012">JORC 2012</SelectItem>
-                  <SelectItem value="NI_43_101">NI 43-101</SelectItem>
-                  <SelectItem value="PERC">PERC</SelectItem>
-                  <SelectItem value="SAMREC">SAMREC</SelectItem>
-                  <SelectItem value="CRIRSCO">CRIRSCO</SelectItem>
+                  <SelectItem value="JORC_2012">JORC 2012 (Austrália)</SelectItem>
+                  <SelectItem value="NI_43_101">NI 43-101 (Canadá)</SelectItem>
+                  <SelectItem value="PERC">PERC (Europa)</SelectItem>
+                  <SelectItem value="SAMREC">SAMREC (África do Sul)</SelectItem>
+                  <SelectItem value="CRIRSCO">CRIRSCO (Internacional)</SelectItem>
+                  <SelectItem value="CBRR">CBRR (Brasil 🇧🇷)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

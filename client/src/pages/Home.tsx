@@ -167,7 +167,7 @@ export default function Home() {
               <ul className="space-y-2 text-sm text-slate-600">
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                  <span>Antecipe mudanças em normas JORC, NI 43-101, SAMREC</span>
+                  <span>Antecipe mudanças em normas JORC, NI 43-101, SAMREC, CBRR</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
@@ -224,7 +224,7 @@ export default function Home() {
                 {
                   icon: FileText,
                   title: "Relatórios Técnicos",
-                  description: "Geração automática de relatórios conformes aos padrões JORC, NI 43-101, PERC, SAMREC e CRIRSCO",
+                  description: "Geração automática de relatórios conformes aos padrões JORC, NI 43-101, PERC, SAMREC, CRIRSCO e CBRR (Brasil)",
                   color: "blue",
                 },
                 {
@@ -287,13 +287,14 @@ export default function Home() {
       <section className="container mx-auto px-4 py-20">
         <div className="max-w-4xl mx-auto text-center space-y-8">
           <h2 className="text-3xl font-bold">Padrões Suportados</h2>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {[
               { name: "JORC 2012", country: "Austrália" },
               { name: "NI 43-101", country: "Canadá" },
               { name: "PERC", country: "Europa" },
               { name: "SAMREC", country: "África do Sul" },
               { name: "CRIRSCO", country: "Internacional" },
+              { name: "CBRR", country: "Brasil 🇧🇷" },
             ].map((standard) => (
               <Card key={standard.name} className="p-4 text-center hover:shadow-md transition-shadow">
                 <p className="font-bold text-lg">{standard.name}</p>

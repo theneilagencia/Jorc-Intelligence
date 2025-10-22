@@ -14,8 +14,9 @@ import * as jorcMapper from './mappers/jorc';
 import * as ni43Mapper from './mappers/ni43';
 import * as percMapper from './mappers/perc';
 import * as samrecMapper from './mappers/samrec';
+import * as cbrrMapper from './mappers/cbrr';
 
-const SUPPORTED_STANDARDS = ["JORC_2012", "NI_43_101", "PERC", "SAMREC"] as const;
+const SUPPORTED_STANDARDS = ["JORC_2012", "NI_43_101", "PERC", "SAMREC", "CBRR"] as const;
 const SUPPORTED_FORMATS = ["PDF", "DOCX", "XLSX"] as const;
 
 type Standard = typeof SUPPORTED_STANDARDS[number];
@@ -41,13 +42,15 @@ function pickMapper(toStandard: Standard) {
     NI_43_101: ni43Mapper.toStandard,
     PERC: percMapper.toStandard,
     SAMREC: samrecMapper.toStandard,
+    CBRR: cbrrMapper.toStandard,
   };
   return mappers[toStandard];
 }
 
 async function renderPDF(payload: any, toStandard: Standard): Promise<Buffer> {
-  // Read HTML template
-  const templatePath = path.join(__dirname, '../templates/jorc_2012.html');
+  // Read HTML template based on standard
+  const templateName = toStandard === 'CBRR' ? 'cbrr.html' : 'jorc_2012.html';
+  const templatePath = path.join(__dirname, '../templates', templateName);
   const templateContent = await fs.readFile(templatePath, 'utf-8');
   
   // Compile with Handlebars
