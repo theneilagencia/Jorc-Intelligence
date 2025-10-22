@@ -24,15 +24,29 @@ export default function Home() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div 
+          className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"
+          role="status"
+          aria-label="Carregando página"
+        >
+          <span className="sr-only">Carregando...</span>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+      {/* Skip Navigation */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-md focus:shadow-lg"
+      >
+        Pular para conteúdo principal
+      </a>
+
       {/* Header */}
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
+      <header role="banner" className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src="/qivo-logo.png" alt="QIVO Mining" className="h-10 w-10 rounded-lg" />
@@ -41,25 +55,28 @@ export default function Home() {
               <p className="text-xs text-slate-600">Infraestrutura de Governança Minerária Digital</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" asChild>
-              <a href="#features">Recursos</a>
-            </Button>
-            <Button variant="ghost" asChild>
-              <a href="/pricing">Planos</a>
-            </Button>
-            <Button asChild>
-              <a href={getLoginUrl()}>Entrar</a>
-            </Button>
-          </div>
+          <nav role="navigation" aria-label="Navegação principal">
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" asChild>
+                <a href="#features">Recursos</a>
+              </Button>
+              <Button variant="ghost" asChild>
+                <a href="/pricing">Planos</a>
+              </Button>
+              <Button asChild>
+                <a href={getLoginUrl()}>Entrar</a>
+              </Button>
+            </div>
+          </nav>
         </div>
       </header>
 
       {/* Hero Section */}
+      <main role="main" id="main-content">
       <section className="container mx-auto px-4 py-24">
         <div className="max-w-5xl mx-auto text-center space-y-8">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium mb-4">
-            <Zap className="h-4 w-4" />
+            <Zap className="h-4 w-4" aria-hidden="true" />
             Infraestrutura Full-Stack para Governança Minerária
           </div>
           
@@ -88,15 +105,15 @@ export default function Home() {
 
           <div className="flex items-center justify-center gap-6 pt-8 text-sm text-slate-600">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              <CheckCircle2 className="h-4 w-4 text-green-600" aria-hidden="true" />
               <span>Auditável em tempo real</span>
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              <CheckCircle2 className="h-4 w-4 text-green-600" aria-hidden="true" />
               <span>Conformidade preditiva</span>
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              <CheckCircle2 className="h-4 w-4 text-green-600" aria-hidden="true" />
               <span>ESG operacional</span>
             </div>
           </div>
@@ -325,9 +342,10 @@ export default function Home() {
           </div>
         </Card>
       </section>
+      </main>
 
       {/* Footer */}
-      <footer className="border-t bg-slate-50 py-12">
+      <footer role="contentinfo" className="border-t bg-slate-50 py-12">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>

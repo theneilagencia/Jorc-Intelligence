@@ -137,9 +137,11 @@ export default function GenerateReport() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
+                aria-required="true"
+                aria-describedby="title-hint"
                 className="focus:ring-2 focus:ring-blue-500"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p id="title-hint" className="text-xs text-gray-500 mt-1">
                 Mínimo 5 caracteres. Seja específico para facilitar identificação.
               </p>
             </div>

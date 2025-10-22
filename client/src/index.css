@@ -131,6 +131,23 @@
   input[type="radio"]:not(:disabled) {
     @apply cursor-pointer;
   }
+  
+  /* Foco visível melhorado para acessibilidade */
+  *:focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary;
+  }
+  
+  button:focus-visible,
+  a:focus-visible,
+  [role="button"]:focus-visible {
+    @apply ring-2 ring-primary ring-offset-2;
+  }
+  
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    @apply ring-2 ring-primary border-primary;
+  }
 }
 
 @layer components {
