@@ -272,11 +272,15 @@ class SDKServer {
           throw ForbiddenError("User not found");
         }
         
-        await db.upsertUser({
-          id: user.id,
-          tenantId: user.tenantId,
-          lastSignedIn: signedInAt,
-        });
+        // Update lastSignedIn directly without full upsert to avoid email constraint issues
+        const dbInstance = await db.getDb();
+        if (dbInstance) {
+          const { users } = await import('../../drizzle/schema');
+          const { eq } = await import('drizzle-orm');
+          await dbInstance.update(users)
+            .set({ lastSignedIn: signedInAt })
+            .where(eq(users.id, user.id));
+        }
         
         return user;
       } catch (error) {
