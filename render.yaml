@@ -1,0 +1,55 @@
+services:
+  # Web Service (Backend + Frontend)
+  - type: web
+    name: qivo-mining
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: pnpm install && pnpm run build
+    startCommand: pnpm run start
+    envVars:
+      - key: NODE_VERSION
+        value: 22.13.0
+      - key: PNPM_VERSION
+        value: 10.4.1
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: qivo-mining-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: VITE_APP_TITLE
+        value: QIVO Mining
+      - key: VITE_APP_LOGO
+        value: /qivo-logo.png
+      - key: BUILT_IN_FORGE_API_KEY
+        sync: false
+      - key: BUILT_IN_FORGE_API_URL
+        sync: false
+      - key: OAUTH_SERVER_URL
+        sync: false
+      - key: OWNER_NAME
+        sync: false
+      - key: OWNER_OPEN_ID
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_REGION
+        value: us-east-1
+      - key: S3_ACCESS_KEY
+        sync: false
+      - key: S3_SECRET_KEY
+        sync: false
+
+databases:
+  - name: qivo-mining-db
+    databaseName: qivo_mining
+    plan: free
+    region: oregon
+
