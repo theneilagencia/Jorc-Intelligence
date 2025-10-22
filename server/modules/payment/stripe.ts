@@ -6,9 +6,21 @@
 import Stripe from 'stripe';
 import type { Plan } from '../licenses/service';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2024-12-18.acacia',
-});
+// Lazy initialization to avoid crash when Stripe is not configured
+let _stripe: Stripe | null = null;
+
+function getStripe(): Stripe {
+  if (!_stripe) {
+    const apiKey = process.env.STRIPE_SECRET_KEY;
+    if (!apiKey || apiKey.trim() === '') {
+      throw new Error('STRIPE_SECRET_KEY not configured. Please add it to environment variables.');
+    }
+    _stripe = new Stripe(apiKey, {
+      apiVersion: '2024-12-18.acacia',
+    });
+  }
+  return _stripe;
+}
 
 export interface CheckoutSessionParams {
   userId: string;
@@ -45,6 +57,7 @@ export function getPriceId(plan: Plan, billingPeriod: 'monthly' | 'annual'): str
 export async function createCheckoutSession(
   params: CheckoutSessionParams
 ): Promise<Stripe.Checkout.Session> {
+  const stripe = getStripe(); // Lazy init
   const { userId, userEmail, plan, billingPeriod, successUrl, cancelUrl } = params;
 
   if (plan === 'START') {
@@ -94,6 +107,7 @@ export function verifyWebhookSignature(
   payload: string | Buffer,
   signature: string
 ): Stripe.Event {
+  const stripe = getStripe(); // Lazy init
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
 
   if (!webhookSecret) {
@@ -120,6 +134,7 @@ export async function handleCheckoutCompleted(
   subscriptionId: string;
   priceId: string;
 }> {
+  const stripe = getStripe(); // Lazy init
   const userId = session.metadata?.userId || session.client_reference_id;
   const plan = session.metadata?.plan as Plan;
   const billingPeriod = session.metadata?.billingPeriod as 'monthly' | 'annual';
@@ -193,6 +208,7 @@ export async function handlePaymentFailed(
  * Cancel subscription in Stripe
  */
 export async function cancelSubscription(subscriptionId: string): Promise<void> {
+  const stripe = getStripe(); // Lazy init
   await stripe.subscriptions.cancel(subscriptionId);
 }
 
@@ -203,6 +219,7 @@ export async function createCustomerPortalSession(
   customerId: string,
   returnUrl: string
 ): Promise<string> {
+  const stripe = getStripe(); // Lazy init
   const session = await stripe.billingPortal.sessions.create({
     customer: customerId,
     return_url: returnUrl,
@@ -210,6 +227,4 @@ export async function createCustomerPortalSession(
 
   return session.url;
 }
-
-export { stripe };
 
