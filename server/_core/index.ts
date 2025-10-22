@@ -8,6 +8,8 @@ import paymentRouter from "../modules/payment/router";
 import licenseRouter from "../modules/licenses/router";
 import authRouter from "../modules/auth/router";
 import { passport } from "../modules/auth/google-oauth";
+import devRouter from "../modules/dev/router";
+import { runDevSeeds } from "../modules/dev/seed";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
@@ -46,6 +48,9 @@ async function startServer() {
   // Authentication routes
   app.use("/api/auth", authRouter);
   
+  // Development routes (only in dev mode)
+  app.use("/api/dev", devRouter);
+  
   // Payment and License routes
   app.use("/api/payment", paymentRouter);
   app.use("/api/license", licenseRouter);
@@ -71,8 +76,13 @@ async function startServer() {
     console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
   }
 
-  server.listen(port, () => {
+  server.listen(port, async () => {
     console.log(`Server running on http://localhost:${port}/`);
+    
+    // Auto-seed disabled - use POST /api/dev/init to create test users
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[Dev] Development mode enabled. Use POST /api/dev/init to create test users.');
+    }
   });
 }
 
