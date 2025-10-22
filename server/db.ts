@@ -13,7 +13,12 @@ export async function getDb() {
   
   if (!_db && dbUrl) {
     try {
-      _client = postgres(dbUrl);
+      _client = postgres(dbUrl, {
+        ssl: 'require',
+        max: 10,
+        idle_timeout: 20,
+        connect_timeout: 10,
+      });
       _db = drizzle(_client);
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
