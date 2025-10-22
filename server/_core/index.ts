@@ -6,6 +6,8 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import paymentRouter from "../modules/payment/router";
 import licenseRouter from "../modules/licenses/router";
+import authRouter from "../modules/auth/router";
+import { passport } from "../modules/auth/google-oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
@@ -35,8 +37,14 @@ async function startServer() {
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  
+  // Initialize Passport
+  app.use(passport.initialize());
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
+  
+  // Authentication routes
+  app.use("/api/auth", authRouter);
   
   // Payment and License routes
   app.use("/api/payment", paymentRouter);

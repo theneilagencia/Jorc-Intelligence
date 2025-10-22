@@ -19,10 +19,20 @@ import Success from "./pages/Success";
 import Cancel from "./pages/Cancel";
 import Account from "./pages/Account";
 
+// Auth Pages
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import AuthCallback from "./pages/AuthCallback";
+
 function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      
+      {/* Auth Routes */}
+      <Route path={"/login"} component={Login} />
+      <Route path={"/register"} component={Register} />
+      <Route path={"/auth/callback"} component={AuthCallback} />
       
       {/* Pricing and Account Routes */}
       <Route path={"/pricing"} component={Pricing} />
