@@ -27,7 +27,7 @@ router.post('/setup-stripe-webhook', async (req, res) => {
     console.log('[Stripe Webhook] Creating webhook endpoint...');
 
     // Create webhook endpoint using Stripe API
-    const webhookUrl = `${ENV.baseURL}/api/webhooks/stripe`;
+    const webhookUrl = `https://qivo-mining.onrender.com/api/webhooks/stripe`;
     
     const response = await fetch('https://api.stripe.com/v1/webhook_endpoints', {
       method: 'POST',
