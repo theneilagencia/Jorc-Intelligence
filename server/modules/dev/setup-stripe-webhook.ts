@@ -35,18 +35,16 @@ router.post('/setup-stripe-webhook', async (req, res) => {
         'Authorization': `Bearer ${stripeSecretKey}`,
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: new URLSearchParams({
-        'url': webhookUrl,
-        'enabled_events[]': [
-          'checkout.session.completed',
-          'customer.subscription.created',
-          'customer.subscription.updated',
-          'customer.subscription.deleted',
-          'invoice.payment_succeeded',
-          'invoice.payment_failed',
-        ].join(','),
-        'description': 'QIVO Mining Webhook',
-      }).toString(),
+      body: new URLSearchParams([
+        ['url', webhookUrl],
+        ['enabled_events[]', 'checkout.session.completed'],
+        ['enabled_events[]', 'customer.subscription.created'],
+        ['enabled_events[]', 'customer.subscription.updated'],
+        ['enabled_events[]', 'customer.subscription.deleted'],
+        ['enabled_events[]', 'invoice.payment_succeeded'],
+        ['enabled_events[]', 'invoice.payment_failed'],
+        ['description', 'QIVO Mining Webhook'],
+      ]).toString(),
     });
 
     if (!response.ok) {
